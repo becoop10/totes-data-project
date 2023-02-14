@@ -1,6 +1,5 @@
 from star_schema.src.helpers import find_match
 
-
 def format_counterparty(raw_counter, raw_address):
     formattedList = []
     for counter in raw_counter:
