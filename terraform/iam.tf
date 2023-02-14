@@ -1,5 +1,5 @@
 resource "aws_iam_role" "ingest_lambda_role" {
-    name_prefix = "role-${var.lambda_name}"
+    name_prefix = "role-${var.ingest_lambda_name}"
     assume_role_policy = <<EOF
     {
         "Version": "2012-10-17",
@@ -45,19 +45,19 @@ data "aws_iam_policy_document" "cw_document" {
     actions = [ "logs:CreateLogStream", "logs:PutLogEvents" ]
 
     resources = [
-      "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.lambda_name}:*"
+      "arn:aws:logs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:log-group:/aws/lambda/${var.ingest_lambda_name}:*"
     ]
   }
 }
 
 resource "aws_iam_policy" "s3_policy" {
-    name_prefix = "s3-policy-${var.lambda_name}"
+    name_prefix = "s3-policy-${var.ingest_lambda_name}"
     policy = data.aws_iam_policy_document.s3_document.json
 }
 
 
 resource "aws_iam_policy" "cw_policy" {
-    name_prefix = "cw-policy-${var.lambda_name}"
+    name_prefix = "cw-policy-${var.ingest_lambda_name}"
     policy = data.aws_iam_policy_document.cw_document.json
 }
 
