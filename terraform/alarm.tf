@@ -1,13 +1,3 @@
-resource "aws_cloudwatch_log_metric_filter" "any_error" {
-    name = "any_error_notification"
-    pattern = "ERROR"
-    log_group_name = "/aws/lambda/ingest-data"
-    metric_transformation {
-      name = "error_metric"
-      namespace = "ErrorMetrics"
-      value = "1"
-    }
-}
 
 resource "aws_cloudwatch_metric_alarm" "alert_errors" {
     alarm_name = "error_alert"
