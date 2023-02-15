@@ -1,4 +1,4 @@
-from star_schema.src.helpers import find_match
+from star_schema.src.utils.helpers import find_match
 
 def format_counterparty(raw_counter, raw_address):
     formattedList = []

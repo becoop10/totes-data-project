@@ -1,4 +1,4 @@
-from star_schema.src.format_counterparty import format_counterparty
+from star_schema.src.utils.format_counterparty import format_counterparty
 
 def test_returns_empty_list_with_empty_inputs():
     assert format_counterparty([],[])==[]

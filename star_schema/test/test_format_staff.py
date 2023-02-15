@@ -1,4 +1,4 @@
-from star_schema.src.format_staff import format_staff
+from star_schema.src.utils.format_staff import format_staff
 import pytest
 
 dummy_staff = [{

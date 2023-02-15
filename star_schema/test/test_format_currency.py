@@ -1,4 +1,4 @@
-from star_schema.src.format_currency import format_currency
+from star_schema.src.utils.format_currency import format_currency
 
 
 def test_format_currency_formats_single_item_list():

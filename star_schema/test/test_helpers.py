@@ -1,4 +1,4 @@
-from star_schema.src.helpers import find_match
+from star_schema.src.utils.helpers import find_match
 import pytest
 
 def test_returns_dictionary():

@@ -1,4 +1,4 @@
-from star_schema.src.format_location import format_location
+from star_schema.src.utils.format_location import format_location
 
 
 def test_format_location_for_a_single_item():
