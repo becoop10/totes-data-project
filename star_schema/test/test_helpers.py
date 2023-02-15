@@ -1,4 +1,4 @@
-from star_schema.src.utils.helpers import find_match
+from star_schema.src.utils.helpers import find_match,time_splitter
 import pytest
 
 def test_returns_dictionary():
@@ -92,3 +92,15 @@ def test_finds_match_when_keys_are_different_strings():
 
 
     assert find_match("key","secondkey",target,list)==expected
+
+
+
+
+
+
+def test_time_splitter_splits_single_dict():
+    expected={"created_date": "2023-02-15",
+         "created_time": "08:38:10.121000","random":"test"}
+    input={"created_at": "2023-02-15 08:38:10.121000","random":"test"}
+
+    assert time_splitter(input)==expected

@@ -22,7 +22,7 @@ def test_format_sales_correctly_formats_list_containing_one_sale():
     ]
 
     expected = [
-        {"sales_record_order_id": 854,
+        {"sales_order_id": 854,
          "created_date": "2023-02-15",
          "created_time": "08:38:10.121000",
          "last_updated_date": "2023-02-15",
@@ -77,7 +77,7 @@ def test_format_sales_formats_list_containing_multiple_sales():
     ]
 
     expected = [
-        {"sales_record_order_id": 854,
+        {"sales_order_id": 854,
          "created_date": "2023-02-15",
          "created_time": "08:38:10.121000",
          "last_updated_date": "2023-02-15",
@@ -94,7 +94,7 @@ def test_format_sales_formats_list_containing_multiple_sales():
                          "2023-02-19",
                          "agreed_delivery_location_id": 21
          },
-        {"sales_record_order_id": 855,
+        {"sales_order_id": 855,
          "created_date": "2023-03-15",
          "created_time": "08:38:10.121000",
          "last_updated_date": "2023-03-15",
