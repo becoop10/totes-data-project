@@ -113,9 +113,15 @@ def test_removes_keys_from_list():
 
 
 
-# def test_time_splitter_splits_single_dict():
-#     expected={"created_date": "2023-02-15",
-#          "created_time": "08:38:10.121000","random":"test"}
-#     input={"created_at": "2023-02-15 08:38:10.121000","random":"test"}
+def test_time_splitter_splits_single_dict():
+    expected={"created_date": "2023-02-15",
+         "created_time": "08:38:10.121000","random":"test"}
+    input={"created_at": "2023-02-15 08:38:10.121000","random":"test"}
 
-#     assert time_splitter(input)==expected
+    assert time_splitter(input)==expected
+
+def test_time_splitter_no_mutation():
+    input={"created_at": "2023-02-15 08:38:10.121000","random":"test"}
+    clone={"created_at": "2023-02-15 08:38:10.121000","random":"test"}
+    time_splitter(input)
+    assert input == clone

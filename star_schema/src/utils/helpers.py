@@ -10,25 +10,16 @@ def remove_keys(list,remove=["created_at","last_updated"]):
 
 
 def time_splitter(dictionary):
-    pass
     
-#     listkeys=list(dictionary.keys())
-#     print(dictionary)
-#     for index,key in enumerate(listkeys):
+        new_details = {}
+        for key in dictionary:
+            if key == "created_at":
+                new_details['created_date'] = dictionary['created_at'].split(' ')[0]
+                new_details['created_time'] = dictionary['created_at'].split(' ')[1]
+            elif key == "last_updated":
+                new_details['last_updated_date'] = dictionary['last_updated'].split(' ')[0]
+                new_details['last_updated_time'] = dictionary['last_updated'].split(' ')[1]
+            else:
+                new_details[key]=dictionary[key]
+        return new_details
         
-#         if key == "created_at":
-            
-#             listkeys[index]=[[f"created_date",dictionary["created_at"].split()[0]],[f"created_time",dictionary["created_at"].split()[1]]]
-#         if key == "last_updated":   
-#             listkeys[index]=[[f"last_updated_date",dictionary["last_updated"].split()[0]],[f"last_updated_time",dictionary["last_updated"].split()[1]]]
-            
-#         else:
-#             listkeys[index]=["hello","jello"]
-#     print(listkeys)
-#     returndict={listkey[0]:listkey[1] for listkey in listkeys}
-#     print(returndict)
-#     pass
-            
-
-
-
