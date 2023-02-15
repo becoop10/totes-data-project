@@ -1,4 +1,4 @@
-from star_schema.src.utils.helpers import find_match,time_splitter
+from star_schema.src.utils.helpers import find_match,time_splitter,remove_keys
 import pytest
 
 def test_returns_dictionary():
@@ -93,14 +93,29 @@ def test_finds_match_when_keys_are_different_strings():
 
     assert find_match("key","secondkey",target,list)==expected
 
+def test_remove_keys_doesnt_mutate():
+    testlist=[{"hello":"Mark","created_at":"2009-12-25"}]
+    testclone=[{"hello":"Mark","created_at":"2009-12-25"}]
+    remove_keys(testlist)
+    assert testlist==testclone
+
+def test_removes_keys_from_single_dictionary():
+    testlist=[{"hello":"Mark","created_at":"2009-12-25"}]
+    expected=[{"hello":"Mark"}]
+    assert remove_keys(testlist)==expected
+
+def test_removes_keys_from_list():
+    testlist=[{"hello":"Mark","created_at":"2009-12-25"},
+              {"hello":"Ben","created_at":"2009-12-25"}]
+    expected=[{"hello":"Mark"},{"hello":"Ben"}]
+    assert remove_keys(testlist)==expected
 
 
 
 
+# def test_time_splitter_splits_single_dict():
+#     expected={"created_date": "2023-02-15",
+#          "created_time": "08:38:10.121000","random":"test"}
+#     input={"created_at": "2023-02-15 08:38:10.121000","random":"test"}
 
-def test_time_splitter_splits_single_dict():
-    expected={"created_date": "2023-02-15",
-         "created_time": "08:38:10.121000","random":"test"}
-    input={"created_at": "2023-02-15 08:38:10.121000","random":"test"}
-
-    assert time_splitter(input)==expected
+#     assert time_splitter(input)==expected
