@@ -1,4 +1,4 @@
-from src.query_totesys_db import (write_to_s3, read_db, format_data,retrieve_timestamp, write_timestamp, lambda_handler)
+from src.file_reader.query_totesys_db import (write_to_s3, read_db, format_data,retrieve_timestamp, write_timestamp, lambda_handler)
 import boto3
 import botocore
 from moto import mock_s3
@@ -90,5 +90,3 @@ def test_write_timestamp_writes_to_env_variable():
 def test_retrieve_timestamp_returns_stored_env_variable():
     write_timestamp()
     assert retrieve_timestamp() == datetime.datetime(2023,1,1).isoformat()
-
-#Test comment
