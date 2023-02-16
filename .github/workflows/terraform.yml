@@ -1,6 +1,6 @@
 name: Terraform Deploy
 on:
-  workflow dispatch:
+  workflow_dispatch:
     inputs:
       environment:
         type: string
