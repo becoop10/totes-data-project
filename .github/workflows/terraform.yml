@@ -1,0 +1,15 @@
+name: Terraform Deploy
+on:
+  workflow dispatch:
+    inputs:
+      environment:
+        type: string
+        default: dev
+        required: false
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
