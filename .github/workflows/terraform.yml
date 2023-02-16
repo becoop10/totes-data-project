@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Debug
+        run: ls -al
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2
         with:
@@ -32,7 +34,7 @@ jobs:
       - name: Terraform Plan
         id: plan
         run: terraform plan -no-color -input=false 
-        continue-on-error: true
+        
 
 
 # testi
