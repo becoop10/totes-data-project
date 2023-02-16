@@ -31,9 +31,11 @@ jobs:
       - name: Terraform Validate
         id: validate
         run: terraform validate -no-color
+        working-directory: ./terraform
       - name: Terraform Plan
         id: plan
         run: terraform plan -no-color -input=false 
+        working-directory: ./terraform
         
 
 
