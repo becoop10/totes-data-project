@@ -1,5 +1,8 @@
 name: Terraform Deploy
 on:
+  push:
+    branches:
+      - github-actions
   workflow_dispatch:
     inputs:
       environment:
