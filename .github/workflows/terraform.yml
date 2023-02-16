@@ -37,17 +37,16 @@ jobs:
         working-directory: ./terraform
         id: validate
         run: terraform validate -no-color
-        working-directory: ./terraform
 
       - name: Terraform Plan
+        working-directory: ./terraform
         id: plan
         run: terraform plan -no-color -input=false 
-        working-directory: ./terraform
-        
+
       - name: Terraform Apply
+        working-directory: ./terraform
         id: apply
         run: terraform apply -auto-approve -input=false
-        working-directory: ./terraform
         
 
 
