@@ -1,4 +1,8 @@
 import boto3
+import json
+
+import pandas as pd
+from io import BytesIO
 from star_schema.src.utils.format_counterparty import format_counterparty
 from star_schema.src.utils.format_currency import format_currency
 from star_schema.src.utils.format_design import format_design
@@ -20,17 +24,36 @@ def get_bucket_name():
     return [ingested_bucket, processed_bucket]
 
 
-bucket_names = get_bucket_name()
-print(bucket_names)
-
-
 def get_file_names(bucket_name):
+    s3 = boto3.client('s3')
+    response=s3.list_objects(Bucket=bucket_name)
+    return [file['Key'] for file in response['Contents']]
+
     pass
+
+
+
+def get_file_contents(bucket_name,file_name):
+    s3=boto3.client('s3')
+    response=s3.get_object(Bucket=bucket_name,Key=file_name)
+    jsonfile=json.loads(response['Body'].read())
+    
+    return jsonfile
+
+def write_file_to_processed_bucket(bucket_name,key,list):
+    s3=boto3.client('s3')
+    pandadataframe=pd.DataFrame(list)
+    out_buffer = BytesIO()
+    pandadataframe.to_parquet(out_buffer, index=False)
+
+    s3.put_object(Bucket=bucket_name,Key=key,Body=out_buffer.getvalue())
+    pass
+
 
 
 def lambda_handler(event, context):
     pass
 
 
-with open('/home/ben/northcoders/data-engineering/totes-data-project/star_schema/src/app/test.txt') as f:
+with open('./star_schema/src/app/test.txt') as f:
     print(f)
