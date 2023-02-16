@@ -1,4 +1,4 @@
-from star_schema.src.utils.format_design import format_design
+from star_schema.src.utils.utils import format_design
 
 
 def test_format_design_formats_for_single_item_input():
@@ -25,6 +25,7 @@ def test_format_design_formats_for_single_item_input():
 
     assert format_design(test_design_data) == expected
 
+
 def test_format_design_on_list_of_items():
     test_design_data = [
         {
@@ -42,7 +43,7 @@ def test_format_design_on_list_of_items():
             "file_location": "/home/user",
             "file_name": "testnumber2",
             "last_updated": "2022-11-03 14:20:49.962000"
-        },{
+        }, {
             "design_id": 3,
             "created_at": "2022-11-03 14:20:49.962000",
             "design_name": "Water",
@@ -70,7 +71,7 @@ def test_format_design_on_list_of_items():
         }
     ]
 
-    assert format_design(test_design_data)==expected
+    assert format_design(test_design_data) == expected
 
 
 def test_format_design_does_mutate():
@@ -90,7 +91,7 @@ def test_format_design_does_mutate():
             "file_location": "/home/user",
             "file_name": "testnumber2",
             "last_updated": "2022-11-03 14:20:49.962000"
-        },{
+        }, {
             "design_id": 3,
             "created_at": "2022-11-03 14:20:49.962000",
             "design_name": "Water",
@@ -99,7 +100,7 @@ def test_format_design_does_mutate():
             "last_updated": "2022-11-03 14:20:49.962000"
         }
     ]
-    copied=[
+    copied = [
         {
             "design_id": 1,
             "created_at": "2022-11-03 14:20:49.962000",
@@ -115,7 +116,7 @@ def test_format_design_does_mutate():
             "file_location": "/home/user",
             "file_name": "testnumber2",
             "last_updated": "2022-11-03 14:20:49.962000"
-        },{
+        }, {
             "design_id": 3,
             "created_at": "2022-11-03 14:20:49.962000",
             "design_name": "Water",
@@ -127,4 +128,4 @@ def test_format_design_does_mutate():
 
     format_design(test_design_data)
 
-    assert test_design_data==copied
+    assert test_design_data == copied

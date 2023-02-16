@@ -1,4 +1,4 @@
-from star_schema.src.utils.format_currency import format_currency
+from star_schema.src.utils.utils import format_currency
 import pytest
 import logging
 
@@ -66,7 +66,9 @@ def test_format_currency_formats_multiple_currency_data():
     ]
     assert format_currency(test_currency) == expected
 
-LOGGER=logging.getLogger(__name__)
+
+LOGGER = logging.getLogger(__name__)
+
 
 def test_raises_log_with_unfound_currency(caplog):
     test_currency = [

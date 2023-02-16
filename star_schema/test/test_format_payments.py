@@ -1,4 +1,4 @@
-from star_schema.src.utils.format_payments import format_payments
+from star_schema.src.utils.utils import format_payments
 
 
 def test_format_payments_correctly_formats_single_payment_input():

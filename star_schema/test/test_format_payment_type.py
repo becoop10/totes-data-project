@@ -1,4 +1,4 @@
-from star_schema.src.utils.format_payment_type import format_payment_type
+from star_schema.src.utils.utils import format_payment_type
 
 
 def test_format_payment_type_formats_list_containing_one_payment_entity():

@@ -1,6 +1,4 @@
-from star_schema.src.utils.format_sales_facts import format_sales_facts
-import datetime
-import json
+from star_schema.src.utils.utils import format_sales_facts
 
 
 def test_format_sales_correctly_formats_list_containing_one_sale():
