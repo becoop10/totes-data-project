@@ -14,7 +14,7 @@ from star_schema.src.utils.format_sales_facts import format_sales_facts
 from star_schema.src.utils.format_staff import format_staff
 
 
-def get_bucket_name():
+def get_bucket_names():
     s3 = boto3.resource('s3')
     for bucket in s3.buckets.all():
         if "ingested" in bucket.name:
@@ -29,15 +29,11 @@ def get_file_names(bucket_name):
     response=s3.list_objects(Bucket=bucket_name)
     return [file['Key'] for file in response['Contents']]
 
-    pass
-
-
 
 def get_file_contents(bucket_name,file_name):
     s3=boto3.client('s3')
     response=s3.get_object(Bucket=bucket_name,Key=file_name)
     jsonfile=json.loads(response['Body'].read())
-    
     return jsonfile
 
 def write_file_to_processed_bucket(bucket_name,key,list):
@@ -45,15 +41,16 @@ def write_file_to_processed_bucket(bucket_name,key,list):
     pandadataframe=pd.DataFrame(list)
     out_buffer = BytesIO()
     pandadataframe.to_parquet(out_buffer, index=False)
-
     s3.put_object(Bucket=bucket_name,Key=key,Body=out_buffer.getvalue())
-    pass
-
-
 
 def lambda_handler(event, context):
-    pass
+    bucket_name_list = get_bucket_names()
+    ingested_bucket = bucket_name_list[0]
+    file_list = get_file_names(ingested_bucket)
+    for file in file_list:
+        if "sales_order" in file:
+            sales_data = get_file_contents(ingested_bucket, file)
+            formatted_sales = format_sales_facts(sales_data)
+            print(formatted_sales)
 
-
-with open('./star_schema/src/app/test.txt') as f:
-    print(f)
+lambda_handler('hello', 'world')

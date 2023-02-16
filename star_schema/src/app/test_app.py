@@ -1,6 +1,6 @@
 from moto import mock_s3
 import boto3
-from star_schema.src.app.app import lambda_handler, get_bucket_name, get_file_names, get_file_contents,write_file_to_processed_bucket
+from star_schema.src.app.app import lambda_handler, get_bucket_names, get_file_names, get_file_contents,write_file_to_processed_bucket
 import json
 import os
 import pytest
@@ -24,7 +24,7 @@ def test_get_bucket_name_assigns_correct_bucket_names_to_variables():
     conn.create_bucket(Bucket='totes-amazeballs-s3-ingested-data-bucket-0987')
     conn.create_bucket(Bucket='totes-amazeballs-s3-processed-data-bucket-0987')
 
-    assert get_bucket_name() == ['totes-amazeballs-s3-ingested-data-bucket-0987',
+    assert get_bucket_names() == ['totes-amazeballs-s3-ingested-data-bucket-0987',
                                  'totes-amazeballs-s3-processed-data-bucket-0987']
 
 
@@ -72,17 +72,11 @@ def test_writes_to_new_bucket():
     
     response2=conn.get_object(Bucket=BUCKETNAME,Key='testoutput')
     
-    
-    
     file=pd.read_parquet(BytesIO(response2['Body'].read()))
-    
-    
-    print(file)
-
-
     
     assert response['Contents'][0]['Key']=='testoutput'
     assert file.to_dict('records')==list
 
 
-
+def test_lambda_handler():
+    pass
