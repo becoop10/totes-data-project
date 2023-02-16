@@ -1,5 +1,6 @@
 from star_schema.src.utils.format_staff import format_staff
 import pytest
+import logging
 
 dummy_staff = [{
     "staff_id": 1,
@@ -87,8 +88,8 @@ def test_format_staff_returns_multiple_staff_matched_against_multiple_sized_list
 
     assert format_staff(dummy_staff,dummy_department)==expected
 
-
-def test_raises_error_when_no_match():
+LOGGER=logging.getLogger(__name__)
+def test_raises_error_when_no_match(caplog):
     test_staff=[{
     "staff_id": 1,
     "first_name": 'Jeremie',
@@ -98,5 +99,7 @@ def test_raises_error_when_no_match():
     "created_at": '2022-11-03 14:20:51.563000',
     "last_updated": '2022-11-03 14:20:51.563000'
 }]
-    with pytest.raises(IndexError):
+    with caplog.at_level(logging.WARNING):
         format_staff(test_staff,dummy_department)
+
+        assert "{'staff_id': 1, 'first_name': 'Jeremie', 'last_name': 'Franey', 'department_id': 7, 'email_address': 'jeremie.franey@terrifictotes.com', 'created_at': '2022-11-03 14:20:51.563000', 'last_updated': '2022-11-03 14:20:51.563000'} no matching table found" in caplog.text

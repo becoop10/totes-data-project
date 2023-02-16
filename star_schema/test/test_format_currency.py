@@ -1,4 +1,6 @@
 from star_schema.src.utils.format_currency import format_currency
+import pytest
+import logging
 
 
 def test_format_currency_formats_single_item_list():
@@ -16,7 +18,7 @@ def test_format_currency_formats_single_item_list():
         {
             "currency_id": 1,
             "currency_code": "GBP",
-            "currency_name": "Great British Pound"
+            "currency_name": "British Pound Sterling"
         }
     ]
 
@@ -49,7 +51,7 @@ def test_format_currency_formats_multiple_currency_data():
         {
             "currency_id": 1,
             "currency_code": "GBP",
-            "currency_name": "Great British Pound"
+            "currency_name": "British Pound Sterling"
         },
         {
             "currency_id": 2,
@@ -63,3 +65,19 @@ def test_format_currency_formats_multiple_currency_data():
         }
     ]
     assert format_currency(test_currency) == expected
+
+LOGGER=logging.getLogger(__name__)
+
+def test_raises_log_with_unfound_currency(caplog):
+    test_currency = [
+        {
+            "currency_id": 1,
+            "currency_code": "GBZ",
+            "created_at": "2022-11-03 14:20:49.962000",
+            "last_updated": "2022-11-03 14:20:49.962000"
+        },
+    ]
+    with caplog.at_level(logging.WARNING):
+        format_currency(test_currency)
+
+        assert "GBZ no matching currency found" in caplog.text

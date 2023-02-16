@@ -1,7 +1,8 @@
-def format_location(unformatted):
-    remove = ["created_at", "last_updated"]
+from star_schema.src.utils.helpers import remove_keys
 
-    formatted = [{key: location[key] for key in location.keys() if key not in remove}
-                 for location in unformatted]
+def format_location(unformatted):
+    
+
+    formatted = remove_keys(unformatted)
 
     return (formatted)
