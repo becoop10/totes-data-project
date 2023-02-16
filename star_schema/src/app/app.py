@@ -3,15 +3,7 @@ import json
 
 import pandas as pd
 from io import BytesIO
-from star_schema.src.utils.format_counterparty import format_counterparty
-from star_schema.src.utils.format_currency import format_currency
-from star_schema.src.utils.format_design import format_design
-from star_schema.src.utils.format_location import format_location
-from star_schema.src.utils.format_payment_type import format_payment_type
-from star_schema.src.utils.format_payments import format_payments
-from star_schema.src.utils.format_purchase_facts import format_purchase
-from star_schema.src.utils.format_sales_facts import format_sales_facts
-from star_schema.src.utils.format_staff import format_staff
+from star_schema.src.utils.utils import format_counterparty, format_currency, format_design, format_location, format_payment_type, format_payments, format_purchase, format_sales_facts, format_staff
 
 
 def get_bucket_names():
