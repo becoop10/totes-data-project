@@ -1,6 +1,14 @@
 name: Terraform Deploy
-on: push
-
+on:
+  push:
+    branches:
+      - github-actions
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: string
+        default: dev
+        required: false
 jobs:
   terraform:
     runs-on: ubuntu-latest
