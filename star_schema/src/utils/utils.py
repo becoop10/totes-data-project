@@ -1,6 +1,7 @@
 from star_schema.src.utils.helpers import find_match, remove_keys, time_splitter
 import logging
 
+
 logger = logging.getLogger('DBTransformationLogger')
 logger.setLevel(logging.INFO)
 
@@ -237,6 +238,10 @@ def format_location(raw_locations):
 
 def format_payment_type(raw_data):
     formatted_data = remove_keys(raw_data)
+    return formatted_data
+
+def format_transaction(raw_data):
+    formatted_data=remove_keys(raw_data)
     return formatted_data
 
 
