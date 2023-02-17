@@ -1,28 +1,17 @@
-
 import json
 import datetime
 import boto3
-import aws
 import logging 
 import psycopg2
 import os
-import time
-'''
-s3 -store last timestamp somewhere
+import botocore.exceptions
 
-Read from totesys - Can we limit to new data only?
-    timestamp, length of table, ids
-convert to required format - json?
-log progress to Cloudwatch
-trigger email alerts in the event of failures
-upload to s3 - append new data
-'''
 
-host = ''
-username = ''
-password = ''
-database = ''
-port = 0
+host = os.environ['totesys_host']
+username = os.environ['totesys_username']
+password = os.environ['totesys_password']
+database = os.environ['totesys_database']
+port = os.environ['totesys_port']
 
 conn = psycopg2.connect(
     host = host,
@@ -44,6 +33,17 @@ def write_to_s3(s3, table_name, data, bucket):
         s3.put_object(Body=data, Bucket=bucket, Key=object_path)
     except:
         logger.error('An error occured.')
+        raise Exception()
+
+def read_from_s3(s3,bucket, key):
+    try:
+        content = s3.get_object(Bucket=bucket, Key=key)
+        content = content['Body'].read().decode('ascii')
+        return content
+    except s3.exceptions.NoSuchKey:
+        return {}
+    except Exception as e:
+        print(e)
         raise Exception()
 
 def format_data(data, headers):
@@ -82,7 +82,10 @@ def write_timestamp():
 
 def retrieve_timestamp():
     try:
-        return os.environ['totesys_last_read']
+        if 'totesys_last_read' in os.environ:
+           return os.environ['totesys_last_read']
+        else:
+            return datetime.datetime(1970,1,1).isoformat()
     except:
         logger.error('An error occured.')
         raise Exception()
@@ -104,14 +107,19 @@ def lambda_handler(event, context):
             'payment_type',
             'transaction'
         ]
-        # last_timestamp = retrieve_timestamp()
+        last_timestamp = retrieve_timestamp()
+        write_timestamp()
         for table in tables:
-            query = f'SELECT * FROM {table};'
-            result = read_db(query, ())
-            headers = read_db("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (table,))
-            data = format_data(result, headers)
-            write_to_s3(s3, table, data, 'totes-amazeballs-s3-ingested-data-bucket-12345' )
-            logger.info(f'{table} table updated.')
-        
-        # write_timestamp()
+            #Check for updates
+            updates = read_db(f'SELECT * FROM {table} WHERE last_updated >= %s;', (last_timestamp,))
+            if len(updates) > 0:
+                #Reads table data
+                result = read_db(f'SELECT * FROM {table};', ())
+                headers = read_db("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (table,))
+                #format data
+                data = format_data(result, headers)
+                #write to s3 bucket
+                write_to_s3(s3, table, data, 'totes-amazeballs-s3-ingested-data-bucket-12345' )
+                logger.info(f'{table} table updated.')
+
 

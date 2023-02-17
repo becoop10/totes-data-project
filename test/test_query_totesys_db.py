@@ -1,15 +1,13 @@
-from src.query_totesys_db import (write_to_s3, read_db, format_data,retrieve_timestamp, write_timestamp, lambda_handler)
+from src.query_totesys_db import (write_to_s3, read_from_s3, read_db, format_data,retrieve_timestamp, write_timestamp, lambda_handler)
 import boto3
 import botocore
 from moto import mock_s3
 from moto.core import patch_client
-import aws
 import pytest
 import os
 from unittest.mock import MagicMock, patch, DEFAULT
 import json
 import datetime
-import time
 from freezegun import freeze_time
 
 @pytest.fixture(scope='function')
@@ -68,18 +66,51 @@ def test_write_to_s3_writes_to_bucket(s3):
     contents = s3.list_objects(Bucket=bucket)['Contents']
     assert contents[0]['Key'] == 'data/hello.json'
 
-# def test_write_to_s3_handles_connection_error(s3):
-#     # print(dir(botocore.client.S3EndpointSetter))
+def test_write_to_s3_writes_correct_data_to_file(s3):
+    bucket = 'totes-amazeballs-s3-ingested-data-bucket-12345'
+    s3.create_bucket(
+        Bucket=bucket,
+        CreateBucketConfiguration={'LocationConstraint': 'eu-east-2'}
+        )
+    data = 'Hello World'
+    write_to_s3(s3,'hello', data, bucket)
+    object_content = s3.get_object(Bucket=bucket, Key='data/hello.json')
+    object_content = object_content['Body'].read().decode('ascii')
+    assert object_content == data
 
-#     bucket = 'totes-amazeballs-s3-ingested-data-bucket-12345'
-#     s3.create_bucket(
-#         Bucket=bucket,
-#         CreateBucketConfiguration={'LocationConstraint': 'eu-east-2'}
-#     )
-#     with patch(f's3.Bucket({bucket}).put_obect', side_effect=ValueError):   
-#         data = 'Hello World'
-#         with pytest.raises(Exception) as e:
-#             write_to_s3(s3,'hello', data, bucket)
+def test_write_to_s3_overwrites_existing_file(s3):
+    bucket = 'totes-amazeballs-s3-ingested-data-bucket-12345'
+    s3.create_bucket(
+        Bucket=bucket,
+        CreateBucketConfiguration={'LocationConstraint': 'eu-east-2'}
+        )
+    data = 'Hello World'
+    write_to_s3(s3,'hello', data, bucket)
+    data = 'Hello World Again'
+    write_to_s3(s3,'hello', data, bucket)
+    object_content = s3.get_object(Bucket=bucket, Key='data/hello.json')
+    object_content = object_content['Body'].read().decode('ascii')
+    assert object_content == data
+
+def test_read_from_s3_reads_data(s3):
+    bucket = 'totes-amazeballs-s3-ingested-data-bucket-12345'
+    s3.create_bucket(
+        Bucket=bucket,
+        CreateBucketConfiguration={'LocationConstraint': 'eu-east-2'}
+        )
+    data = 'Hello World'
+    write_to_s3(s3,'hello', data, bucket)
+    content = read_from_s3(s3, bucket, 'data/hello.json')
+    assert content == data
+
+def test_read_from_s3_handles_no_such_key(s3):
+    bucket = 'totes-amazeballs-s3-ingested-data-bucket-12345'
+    s3.create_bucket(
+        Bucket=bucket,
+        CreateBucketConfiguration={'LocationConstraint': 'eu-east-2'}
+        )
+    content = read_from_s3(s3, bucket, 'helloWorld')
+    assert content == {}
 
 @freeze_time('2023-01-01')
 def test_write_timestamp_writes_to_env_variable():
@@ -91,4 +122,44 @@ def test_retrieve_timestamp_returns_stored_env_variable():
     write_timestamp()
     assert retrieve_timestamp() == datetime.datetime(2023,1,1).isoformat()
 
-    
+def test_retrieve_timestamp_returns_standard_when_no_date_stored():
+    os.environ.pop('totesys_last_read')
+    assert retrieve_timestamp() == datetime.datetime(1970,1,1).isoformat()
+
+def test_lambda_handler_uploads_objects_to_s3(s3):
+    bucket = 'totes-amazeballs-s3-ingested-data-bucket-12345'
+    s3.create_bucket(
+        Bucket=bucket,
+        CreateBucketConfiguration={'LocationConstraint': 'eu-east-2'}
+        )
+    with patch('boto3.client', return_value=s3):
+        lambda_handler({},{})
+        objects = s3.list_objects(Bucket=bucket)
+        keys = [c['Key'] for c in objects['Contents']]
+        tables = [
+            'counterparty',
+            'currency',
+            'department',
+            'design',
+            'staff',
+            'sales_order',
+            'address',
+            'payment',
+            'purchase_order',
+            'payment_type',
+            'transaction'
+        ]
+        for t in tables:
+            assert f'data/{t}.json' in keys
+
+@freeze_time('2023-02-01')
+def test_lambda_handler_updates_timestamp(s3):
+    bucket = 'totes-amazeballs-s3-ingested-data-bucket-12345'
+    s3.create_bucket(
+        Bucket=bucket,
+        CreateBucketConfiguration={'LocationConstraint': 'eu-east-2'}
+        )
+    with patch('boto3.client', return_value=s3):
+        lambda_handler({},{})
+        ts = retrieve_timestamp()
+        assert ts == datetime.datetime(2023,2,1).isoformat()
