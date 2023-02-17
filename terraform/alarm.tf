@@ -8,9 +8,6 @@ resource "aws_sns_topic" "test_error_alerts" {
   endpoint = local.emails # email in stored in local.tf
 }
 
-resource "aws_cloudwatch_log_group" "ingest_lambda_log_group" {
-  name = "/aws/lambda/${var.ingest_lambda_name}"
-  }
 
 resource "aws_cloudwatch_log_metric_filter" "any_error" {
     name = "any_error_notification"
