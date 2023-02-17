@@ -3,6 +3,7 @@ on:
   push:
     branches:
       - github-actions
+    
   workflow_dispatch:
     inputs:
       environment:
@@ -12,6 +13,7 @@ on:
 jobs:
   terraform:
     runs-on: ubuntu-latest
+    environment: test
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -23,6 +25,12 @@ jobs:
         uses: hashicorp/setup-terraform@v2
         with:
           cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
       - name: Terraform Format
         id: fmt
