@@ -1,0 +1,59 @@
+name: Terraform Deploy
+on:
+  push:
+    branches:
+      - secret
+    
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: string
+        default: dev
+        required: false
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Debug
+        run: ls -al
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: AKIA5LDP4NNRNKOFI6JK
+          aws-secret-access-key: 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
+          aws-region: us-east-1
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: ./terraform
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        id: plan
+        run: terraform plan -no-color -input=false 
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        id: apply
+        run: terraform apply -auto-approve -input=false
+        
