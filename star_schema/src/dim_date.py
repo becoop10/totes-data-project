@@ -3,11 +3,11 @@ import pandas as pd
 import math
 import psycopg2
 
-host = 'nc-data-eng-project-dw-prod.chpsczt8h1nu.eu-west-2.rds.amazonaws.com'
-username = 'project_team_3'
-password = 'V2WbVS36NGNaArE'
-database = 'postgres'
-port = 5432
+host = ''
+username = ''
+password = ''
+database = ''
+port = 0
 
 conn = psycopg2.connect(
     host = host,
