@@ -1,17 +1,26 @@
 import json
 import datetime
 import boto3
+
 import logging 
 import psycopg2
 import os
 import botocore.exceptions
+'''
+s3 -store last timestamp somewhere
+Read from totesys - Can we limit to new data only?
+    timestamp, length of table, ids
+convert to required format - json?
+log progress to Cloudwatch
+trigger email alerts in the event of failures
+upload to s3 - append new data
+'''
 
-
-host = os.environ['totesys_host']
-username = os.environ['totesys_username']
-password = os.environ['totesys_password']
-database = os.environ['totesys_database']
-port = os.environ['totesys_port']
+host = 'n'
+username = 'p
+password = 'E
+database = 't'
+port = 5
 
 conn = psycopg2.connect(
     host = host,
@@ -20,6 +29,17 @@ conn = psycopg2.connect(
     password = password,
     port = port
 )
+ 
+
+def get_bucket_names():
+    s3 = boto3.resource('s3')
+    for bucket in s3.buckets.all():
+        if "ingested" in bucket.name:
+            ingested_bucket = bucket.name
+        if "processed" in bucket.name:
+            processed_bucket = bucket.name
+    return [ingested_bucket, processed_bucket]
+
 
 logger = logging.getLogger('TotesysQueryLogger')
 logger.setLevel(logging.INFO)
@@ -33,17 +53,6 @@ def write_to_s3(s3, table_name, data, bucket):
         s3.put_object(Body=data, Bucket=bucket, Key=object_path)
     except:
         logger.error('An error occured.')
-        raise Exception()
-
-def read_from_s3(s3,bucket, key):
-    try:
-        content = s3.get_object(Bucket=bucket, Key=key)
-        content = content['Body'].read().decode('ascii')
-        return content
-    except s3.exceptions.NoSuchKey:
-        return {}
-    except Exception as e:
-        print(e)
         raise Exception()
 
 def format_data(data, headers):
@@ -90,8 +99,10 @@ def retrieve_timestamp():
         logger.error('An error occured.')
         raise Exception()
 
-
 def lambda_handler(event, context):
+    bucket_name_list=get_bucket_names()
+    bucket_name=bucket_name_list[0]
+
     with conn:         
         s3 = boto3.client('s3')
         tables = [
@@ -106,20 +117,29 @@ def lambda_handler(event, context):
             'purchase_order',
             'payment_type',
             'transaction'
+            
         ]
-        last_timestamp = retrieve_timestamp()
+        current_timestamp = datetime.datetime.now()
+        try:
+            last_timestamp = f'{s3.get_object(Bucket=bucket_name,Key="data/timestamp.txt")["Body"].read().decode("utf-8")}'
+        except:
+            last_timestamp=f'{datetime.datetime(1970,1,1).isoformat()}'
         write_timestamp()
+        count=0
         for table in tables:
-            #Check for updates
-            updates = read_db(f'SELECT * FROM {table} WHERE last_updated >= %s;', (last_timestamp,))
+            updates = read_db(f'SELECT * FROM {table} WHERE last_updated >= %s;', (last_timestamp))
             if len(updates) > 0:
-                #Reads table data
-                result = read_db(f'SELECT * FROM {table};', ())
-                headers = read_db("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (table,))
-                #format data
+                count+=1
+                query = f'SELECT * FROM {table};'
+                result = read_db(query, ())
+                headers = read_db("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (table))
                 data = format_data(result, headers)
-                #write to s3 bucket
-                write_to_s3(s3, table, data, 'totes-amazeballs-s3-ingested-data-bucket-12345' )
+
+                tablestring=f"{current_timestamp}/{table}"
+                write_to_s3(s3, tablestring, data, bucket_name )
                 logger.info(f'{table} table updated.')
+        if count>0:
+            s3.put_object(Body=f'{current_timestamp}', Bucket=bucket_name, Key="data/timestamp.txt")
 
-
+            s3.put_object(Body=f'{count}', Bucket=bucket_name, Key="data/count.txt")
+        # write_timestamp()
