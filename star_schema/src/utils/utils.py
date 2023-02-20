@@ -1,8 +1,7 @@
 from star_schema.src.utils.helpers import find_match, remove_keys, time_splitter
 import logging
-import datetime
 import pandas as pd
-import math
+
 
 logger = logging.getLogger('DBTransformationLogger')
 logger.setLevel(logging.INFO)
@@ -310,23 +309,3 @@ def format_staff(unformatted_staff, unformatted_depts):
             continue
 
     return formatted_staff
-
-def format_date():
-    formatted_datetime = []
-    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    for d in pd.date_range(start='11/03/2022', end=datetime.datetime.now()):
-        new_date = {}
-
-        new_date['date_id'] = d
-        new_date['year'] = d.year
-        new_date['month'] = d.month #1-12
-        new_date['day'] = d.day
-        new_date['day_of_week'] = d.isoweekday() #1-7, mon-sun
-        new_date['day_name'] = days[d.weekday()]
-        new_date['month_name'] = months[d.month - 1]
-        new_date['quarter'] = math.ceil(d.month / 3 )
-
-        formatted_datetime.append(new_date)
-     
-    return formatted_datetime

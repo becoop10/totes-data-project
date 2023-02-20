@@ -3,7 +3,7 @@ import json
 import logging
 import pandas as pd
 from io import BytesIO
-from star_schema.src.utils.utils import format_counterparty, format_transaction, format_currency, format_design, format_location, format_payment_type, format_payments, format_purchase, format_sales_facts, format_staff, format_date
+from star_schema.src.utils.utils import format_counterparty, format_transaction, format_currency, format_design, format_location, format_payment_type, format_payments, format_purchase, format_sales_facts, format_staff
 logger = logging.getLogger('DBTransformationLogger')
 logger.setLevel(logging.INFO)
 import pyarrow
@@ -150,12 +150,6 @@ def lambda_handler(event, context):
     except UnboundLocalError as error:
         logger.info(error.args[0].split(" ")[2], "Table not found")
 
-    try:
-        formatted_date=format_date()
-        write_file_to_processed_bucket(
-            processed_bucket, 'data/dim_date.parquet', format_date)
-    except UnboundLocalError as error:
-        logger.info(error.args[0].split(" ")[2], "Table not found")
         
 
 
