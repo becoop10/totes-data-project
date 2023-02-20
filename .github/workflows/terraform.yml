@@ -2,7 +2,7 @@ name: Terraform Deploy
 on:
   push:
     branches:
-      - secret
+      - secrets-manager
     
   workflow_dispatch:
     inputs:
