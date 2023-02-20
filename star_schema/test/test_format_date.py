@@ -1,11 +1,11 @@
-from star_schema.src.utils.utils import format_date
+from star_schema.src.dim_date import format_date, write_to_db
 import pytest
 import datetime
 import logging
 import math
 
-def test_returns_list_of_dicts_containing_dates_starting_from_3_nov_2022():
-    result = format_date()
+def test_format_date_returns_list_of_dicts_containing_dates_starting_from_date_one_ending_at_date_two():
+    result = format_date('11/3/2022', '11/4/2022')
     assert result[0]['year'] == 2022
     assert result[0]['month'] == 11
     assert result[0]['day'] == 3
@@ -14,16 +14,15 @@ def test_returns_list_of_dicts_containing_dates_starting_from_3_nov_2022():
     assert result[0]['month_name'] == 'November'
     assert result[0]['quarter'] == 4
 
-def test_returns_list_of_dicts_ending_with_today():
-    result = format_date()
-    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
-    d = datetime.datetime.now()
     i = len(result) - 1
-    assert result[i]['year'] == d.year
-    assert result[i]['month'] == d.month
-    assert result[i]['day'] == d.day
-    assert result[i]['day_of_week'] == d.isoweekday()
-    assert result[i]['day_name'] == days[d.weekday()]
-    assert result[i]['month_name'] == months[d.month - 1]
-    assert result[i]['quarter'] == math.ceil(d.month / 3 )
+
+    assert result[i]['year'] == 2022
+    assert result[i]['month'] == 11
+    assert result[i]['day'] == 4
+    assert result[i]['day_of_week'] == 5
+    assert result[i]['day_name'] == 'Friday'
+    assert result[i]['month_name'] == 'November'
+    assert result[i]['quarter'] == 4
+
+def test_write_to_db_writes_table_of_dates_to_data_warehouse():
+    pass
