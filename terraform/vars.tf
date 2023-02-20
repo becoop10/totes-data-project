@@ -4,8 +4,4 @@ variable "ingest_lambda_name" {
   default     = "ingest-data"
 }
 
-variable "transform_lambda_name" {
-  description = "Transform lambda function"
-  type        = string
-  default     = "transform-data"
-}
+

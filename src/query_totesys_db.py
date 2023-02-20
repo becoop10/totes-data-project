@@ -116,28 +116,29 @@ def lambda_handler(event, context):
             'payment',
             'purchase_order',
             'payment_type',
-            'transaction'   
+            'transaction'
+            
         ]
         current_timestamp = datetime.datetime.now()
         try:
-            last_timestamp = f'{s3.get_object(Bucket=bucket_name,Key="data/timestamp.txt")["Body"].read().decode("utf-8")}'
+            last_timestamp =s3.get_object(Bucket=bucket_name,Key="data/timestamp.txt")["Body"].read().decode("utf-8")
         except:
-            last_timestamp=f'{datetime.datetime(1970,1,1).isoformat()}'
+            last_timestamp=datetime.datetime(1970,1,1).isoformat()
         write_timestamp()
-        count = 0
+        count=0
         for table in tables:
-            updates = read_db(f'SELECT * FROM {table} WHERE last_updated >= %s;', (last_timestamp, ))
+            updates = read_db(f'SELECT * FROM {table} WHERE last_updated >= %s;', (last_timestamp,))
             if len(updates) > 0:
                 count+=1
                 query = f'SELECT * FROM {table};'
                 result = read_db(query, ())
-                headers = read_db("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (table, ))
+                headers = read_db("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (table,))
                 data = format_data(result, headers)
 
                 tablestring=f"{current_timestamp}/{table}"
                 write_to_s3(s3, tablestring, data, bucket_name )
                 logger.info(f'{table} table updated.')
-        if count > 0:
+        if count>0:
             s3.put_object(Body=f'{current_timestamp}', Bucket=bucket_name, Key="data/timestamp.txt")
 
             s3.put_object(Body=f'{count}', Bucket=bucket_name, Key="data/count.txt")
