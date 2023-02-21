@@ -4,7 +4,7 @@ import boto3
 import logging 
 import psycopg2
 import os
-import botocore.exceptions
+from botocore.exceptions import ClientError
 
 def get_secret():
 
