@@ -6,12 +6,35 @@ import psycopg2
 import os
 import botocore.exceptions
 
+def get_secret():
 
-host = "nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com"
-username = "project_user_3"
-password = os.environ"EbD7qkwt5xWYUwnx2nbhdvkC"
-database = os.environ"totesys"
-port = os.environ"5432
+    secret_name = "totesys-db"
+    region_name = "us-east-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        raise e
+
+    # Decrypts secret using the associated KMS key.
+    secret = get_secret_value_response['SecretString']
+    return json.loads(secret)
+
+db = get_secret()
+host = db['host']
+username = db['username']
+password = db['password']
+database = db['dbname']
+port = db['port']
 
 conn = psycopg2.connect(
     host = host,
@@ -119,7 +142,5 @@ def lambda_handler(event, context):
                 #format data
                 data = format_data(result, headers)
                 #write to s3 bucket
-                write_to_s3(s3, table, data, 'totes-amazeballs-s3-ingested-data-bucket-alasdair-122345' )
+                write_to_s3(s3, table, data, 'totes-amazeballs-s3-ingested-data-bucket-12345' )
                 logger.info(f'{table} table updated.')
-
-
