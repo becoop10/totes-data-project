@@ -61,7 +61,7 @@ resource "aws_iam_policy" "sm_policy" {
           "secretsmanager:GetSecretValue",
         ]
         Effect   = "Allow"
-        Resource = "arn:aws:secretsmanager:us-east-1:108554963036:secret:totesys-db-OM8d7g"
+        Resource = "*"
       },
     ]
   })
