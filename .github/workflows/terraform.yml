@@ -45,7 +45,7 @@ jobs:
       - name: Terraform Init
         working-directory: ./terraform
         id: init
-        run: terraform init -force-copy
+        run: terraform init -backend=false
 
       - name: Terraform Validate
         working-directory: ./terraform
