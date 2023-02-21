@@ -6,12 +6,35 @@ import psycopg2
 import os
 import botocore.exceptions
 
+def get_secret():
 
-host = os.environ['totesys_host']
-username = os.environ['totesys_username']
-password = os.environ['totesys_password']
-database = os.environ['totesys_database']
-port = os.environ['totesys_port']
+    secret_name = "totesys-db"
+    region_name = "us-east-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        raise e
+
+    # Decrypts secret using the associated KMS key.
+    secret = get_secret_value_response['SecretString']
+    return json.loads(secret)
+
+db = get_secret()
+host = db['host']
+username = db['username']
+password = db['password']
+database = db['dbname']
+port = db['port']
 
 conn = psycopg2.connect(
     host = host,

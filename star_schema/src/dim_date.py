@@ -2,12 +2,39 @@ import datetime
 import pandas as pd
 import math
 import psycopg2
+import boto3
+from botocore.exceptions import ClientError
+import json
 
-host = ''
-username = ''
-password = ''
-database = ''
-port = 0
+def get_secret():
+
+    secret_name = "tote-warehouse"
+    region_name = "us-east-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        raise e
+
+    # Decrypts secret using the associated KMS key.
+    secret = get_secret_value_response['SecretString']
+    return json.loads(secret)
+
+db = get_secret()
+host = db['host']
+username = db['username']
+password = db['password']
+database = db['dbname']
+port = db['port']
 
 conn = psycopg2.connect(
     host = host,
