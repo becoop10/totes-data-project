@@ -5,7 +5,7 @@ terraform {
     region = "us-east-1"
 
     # both access and secret keys will need to be changed for github secrets once that is working
-    access_key = aws_iam_access_key.terraform_state_access_key.id 
-    secret_key = aws_iam_access_key.terraform_state_access_key.secret
+    access_key = "${var.aws_access_key}"
+    secret_key = "${var.aws_secret_key}"
   }
 }
