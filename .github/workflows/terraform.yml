@@ -45,7 +45,7 @@ jobs:
       - name: Terraform Init
         working-directory: ./terraform
         id: init
-        run: terraform init -auto-approve
+        run: terraform init -backend-config=path
 
       - name: Terraform Validate
         working-directory: ./terraform
