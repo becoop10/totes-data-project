@@ -4,4 +4,5 @@ resource "aws_lambda_function" "ingest_lambda" {
     role = aws_iam_role.ingest_lambda_role.arn
     handler = "query_totesys_db.lambda_handler"
     runtime = "python3.9"
+    timeout = 10
 }
