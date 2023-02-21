@@ -5,6 +5,6 @@ pandastest.py
 df.parquet
 df.parquet.gzip
 terraform/.terraform*
-terraform/terraform*
+terraform/terraform
 function/package/
 passoword
