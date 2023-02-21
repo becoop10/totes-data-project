@@ -4,8 +4,8 @@ variable "TOTESYS_DB_DATABASE" {}
 variable "TOTESYS_DB_USER" {}
 variable "TOTESYS_DB_PASSWORD" {}
 
-resource "aws_secretsmanager_secret" "totesys-db-credentials-4" {
-    name        = "totesys-db-credentials-4"
+resource "aws_secretsmanager_secret" "totesys-db-credentials" {
+    name        = "totesys-db"
 }
 
 resource "aws_secretsmanager_secret_version" "example" {
