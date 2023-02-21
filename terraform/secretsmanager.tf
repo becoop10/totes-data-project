@@ -8,8 +8,8 @@ resource "aws_secretsmanager_secret" "totesys-db-credentials" {
     name        = "totesys-db"
 }
 
-resource "aws_secretsmanager_secret_version" "example" {
-    secret_id     = aws_secretsmanager_secret.totesys-db-credentials-4.id
+resource "aws_secretsmanager_secret_version" "totesys-db-credentials" {
+    secret_id     = aws_secretsmanager_secret.totesys-db-credentials.id
     secret_string = jsonencode({
         host: "${var.TOTESYS_DB_HOST}"
         port: "${var.TOTESYS_DB_PORT}"
