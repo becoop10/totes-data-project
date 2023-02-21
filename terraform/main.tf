@@ -20,11 +20,6 @@ provider "aws" {
   region  = "us-east-1"
 }
 
-
-resource "aws_s3_bucket" "terraform_state" {
-  bucket = "totes-amazeballs-s3-tfstate"
-}
-
 resource "aws_s3_bucket_versioning" "terraform_state" {
     bucket = aws_s3_bucket.terraform_state.id
 
