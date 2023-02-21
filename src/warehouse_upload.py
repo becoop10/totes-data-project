@@ -32,21 +32,25 @@ def get_secret():
     return json.loads(secret)
 
 def build_connection():
-    db = get_secret()
-    host = db['host']
-    username = db['username']
-    password = db['password']
-    database = db['dbname']
-    port = db['port']
+    try:
+        db = get_secret()
+        host = db['host']
+        username = db['username']
+        password = db['password']
+        database = db['dbname']
+        port = db['port']
 
-    conn = psycopg2.connect(
-        host = host,
-        database = database,
-        user = username,
-        password = password,
-        port = port
-    )
-    return conn
+        conn = psycopg2.connect(
+            host = host,
+            database = database,
+            user = username,
+            password = password,
+            port = port
+        )
+        return conn
+    except:
+        logger.error('An error occured. Could not establish connection to postgres db.')
+        raise Exception()
 
 
 def get_bucket_names():
@@ -65,6 +69,7 @@ def read_csv(s3, path, bucket):
         r = file.to_dict('records')
         return [k['File names'] for k in r]   
     except:
+        logger.error('An error occured. Could not read csv.')
         raise Exception()
 
 def read_parquet(s3, path, bucket):
@@ -73,6 +78,7 @@ def read_parquet(s3, path, bucket):
         file=pd.read_parquet(BytesIO(response['Body'].read()))
         return file.to_dict('records')
     except:
+        logger.error('An error occured. Could not read parquet.')
         raise Exception()
 
 
@@ -83,8 +89,7 @@ def write_to_db(conn, query, var_in):
             conn.commit()
             cur.close()
         except Exception as e:
-            logger.error('An error occured.')
-            print(e)
+            logger.error('An error occured. Could not write to postgres db.')
             raise Exception()
 
 
