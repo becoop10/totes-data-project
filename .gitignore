@@ -7,4 +7,11 @@ df.parquet.gzip
 terraform/.terraform*
 terraform/terraform
 function/package/
-passoword
+.terraform
+.terraform*
+terraform.*
+provider.txt
+.gitignore
+test.py
+test.txt
+
