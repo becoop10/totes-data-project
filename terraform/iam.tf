@@ -70,3 +70,7 @@ resource "aws_iam_role_policy_attachment" "lambda_cw_policy_attachment" {
     role = aws_iam_role.ingest_lambda_role.name
     policy_arn = aws_iam_policy.cw_policy.arn
 }
+
+resource "aws_iam_user" "terraform_state_user" {
+  name = "terraform-state-user"
+}
