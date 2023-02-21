@@ -7,5 +7,5 @@ resource "aws_s3_bucket" "processed_data" {
 }
 
 resource "aws_s3_bucket" "terraform_state_bucket" {
-    bucket = "totes-amazeballs-s3-terraform-state-bucket"
+    bucket = "totes-amazeballs-s3-terraform-state-bucket-12345"
 }
