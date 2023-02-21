@@ -5,7 +5,8 @@ import boto3
 import logging 
 import psycopg2
 import os
-import botocore.exceptions
+
+from botocore.exceptions import ClientError
 '''
 s3 -store last timestamp somewhere
 Read from totesys - Can we limit to new data only?
@@ -16,7 +17,35 @@ trigger email alerts in the event of failures
 upload to s3 - append new data
 '''
 
+def get_secret():
 
+    secret_name = "totesys-db"
+    region_name = "us-east-1"
+
+    # Create a Secrets Manager client
+    session = boto3.session.Session()
+    client = session.client(
+        service_name='secretsmanager',
+        region_name=region_name
+    )
+
+    try:
+        get_secret_value_response = client.get_secret_value(
+            SecretId=secret_name
+        )
+    except ClientError as e:
+        raise e
+
+    # Decrypts secret using the associated KMS key.
+    secret = get_secret_value_response['SecretString']
+    return json.loads(secret)
+
+db = get_secret()
+host = db['host']
+username = db['username']
+password = db['password']
+database = db['dbname']
+port = db['port']
 
 conn = psycopg2.connect(
     host = host,
@@ -117,14 +146,14 @@ def lambda_handler(event, context):
             'purchase_order',
             'payment_type',
             'transaction'
-            
-        ]
+   ]
         # current_timestamp = f'{datetime.datetime.now()}'
         # current_timestamp = current_timestamp[0:-10]
         # try:
         #     last_timestamp =s3.get_object(Bucket=bucket_name,Key="data/timestamp.txt")["Body"].read().decode("utf-8")
         # except:
         #     last_timestamp=datetime.datetime(1970,1,1).isoformat()
+        
         try:
             byte_timestamp = get_file_contents(bucket_name, 'data/timestamp.txt')
         except:
@@ -177,4 +206,4 @@ def lambda_handler(event, context):
         # if count>0:
         #     s3.put_object(Body=f'{current_timestamp}', Bucket=bucket_name, Key="data/timestamp.txt")
 
-        # write_timestamp()
+
