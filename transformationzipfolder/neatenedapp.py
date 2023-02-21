@@ -25,9 +25,9 @@ def lambda_handler(event, context):
         raise Exception("NO BUCKETS TO RETRIEVE DATA")
 
 
-    file_list = get_file_names(ingested_bucket,f'data/{timestamp}/')
-
     timestamp=s3.get_object(Bucket=ingested_bucket,Key="data/timestamp.txt")['Body'].read().decode('utf-8')
+
+    file_list = get_file_names(ingested_bucket,f'data/{timestamp}/')
 
     tablenames=["sales_order","counterparty","currency","department","design","staff","address","payment_type","payment","purchase_order","transaction"]
     dataToBeFormatted={}
