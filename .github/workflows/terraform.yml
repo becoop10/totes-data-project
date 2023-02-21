@@ -1,4 +1,12 @@
 name: Terraform Deploy
+
+env:
+  TF_VAR_TOTESYS_DB_HOST: ${{ secrets.TOTESYS_DB_HOST}}
+  TF_VAR_TOTESYS_DB_PORT: ${{ secrets.TOTESYS_DB_PORT}}
+  TF_VAR_TOTESYS_DB_DATABASE: ${{ secrets.TOTESYS_DB_DATABASE}}
+  TF_VAR_TOTESYS_DB_USER: ${{ secrets.TOTESYS_DB_USER}}
+  TF_VAR_TOTESYS_DB_PASSWORD: ${{ secrets.TOTESYS_DB_PASSWORD}}
+
 on:
   push:
     branches:
