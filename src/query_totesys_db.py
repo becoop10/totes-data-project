@@ -7,11 +7,11 @@ import os
 import botocore.exceptions
 
 
-host = os.environ['totesys_host']
-username = os.environ['totesys_username']
-password = os.environ['totesys_password']
-database = os.environ['totesys_database']
-port = os.environ['totesys_port']
+host = "nc-data-eng-totesys-production.chpsczt8h1nu.eu-west-2.rds.amazonaws.com"
+username = "project_user_3"
+password = os.environ"EbD7qkwt5xWYUwnx2nbhdvkC"
+database = os.environ"totesys"
+port = os.environ"5432
 
 conn = psycopg2.connect(
     host = host,
@@ -119,7 +119,7 @@ def lambda_handler(event, context):
                 #format data
                 data = format_data(result, headers)
                 #write to s3 bucket
-                write_to_s3(s3, table, data, 'totes-amazeballs-s3-ingested-data-bucket-12345' )
+                write_to_s3(s3, table, data, 'totes-amazeballs-s3-ingested-data-bucket-alasdair-122345' )
                 logger.info(f'{table} table updated.')
 
 
