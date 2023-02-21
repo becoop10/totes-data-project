@@ -31,20 +31,23 @@ def get_secret():
     secret = get_secret_value_response['SecretString']
     return json.loads(secret)
 
-db = get_secret()
-host = db['host']
-username = db['username']
-password = db['password']
-database = db['dbname']
-port = db['port']
+def build_connection():
+    db = get_secret()
+    host = db['host']
+    username = db['username']
+    password = db['password']
+    database = db['dbname']
+    port = db['port']
 
-conn = psycopg2.connect(
-    host = host,
-    database = database,
-    user = username,
-    password = password,
-    port = port
-)
+    conn = psycopg2.connect(
+        host = host,
+        database = database,
+        user = username,
+        password = password,
+        port = port
+    )
+    return conn
+
 
 def get_bucket_names():
     s3 = boto3.resource('s3')
@@ -54,15 +57,6 @@ def get_bucket_names():
         if "processed" in bucket.name:
             processed_bucket = bucket.name
     return [ingested_bucket, processed_bucket]
-
-'''
-read updated file text file
-
-read parquet file
-
-upload to db
-
-'''
 
 def read_csv(s3, path, bucket):
     try:
@@ -82,7 +76,7 @@ def read_parquet(s3, path, bucket):
         raise Exception()
 
 
-def write_to_db(query, var_in):
+def write_to_db(conn, query, var_in):
     with conn.cursor() as cur:
         try:
             cur.execute(query, var_in)
@@ -117,7 +111,12 @@ def query_builder(r, filename):
     query = f'INSERT INTO {filename} (%s) VALUES (%s) ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
     return query, var_in
 
+def data_sorter(data, filename):
+    id = id_columns[filename]
+    return sorted(data, key=lambda a: a[id] )
+
 def lambda_handler(event, context):
+    conn = build_connection()
     s3 = boto3.client('s3')
     csv_key = 'updatedfiles.csv'
     bucket = get_bucket_names()[1]
@@ -126,16 +125,15 @@ def lambda_handler(event, context):
     for f in updated_files:
         filename = f.split('/')[1]
         data = read_parquet(s3, f, bucket)
-        for r in data:      
+        sorted_data = data_sorter(data, filename)
+        for r in sorted_data:      
             query, var_in = query_builder(r, filename)
-            write_to_db(query, var_in)
+            write_to_db(conn, query, var_in)
         logger.info(f'{f} uploaded to warehouse.')
 
 
 '''
-FINISH test for query builder
 set up aws secret and credentials
-order data
 test data is being uploaded
 '''
         

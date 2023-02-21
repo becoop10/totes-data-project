@@ -1,4 +1,4 @@
-from src.warehouse_upload import (read_csv, read_parquet, write_to_db, query_builder)
+from src.warehouse_upload import (read_csv, read_parquet, write_to_db, query_builder, data_sorter)
 import pytest
 import pandas as pd
 from io import BytesIO
@@ -37,7 +37,21 @@ def test_read_csv_reads_from_csv_at_path():
 def test_query_builder_writes_query():
     r = { 'staff_id': 1, 'hello':2, 'world': 3}
     query, var_in = query_builder(r, 'dim_staff')
-    expected = "INSERT INTO  (%s) VALUES (%s) ON CONFLICT (staff_id) DO UPDATE SET hello = EXCLUDED.hello, world = EXCLUDED.world;"
-    print(query)
+    expected = "INSERT INTO dim_staff (%s) VALUES (%s) ON CONFLICT (staff_id) DO UPDATE SET staff_id = EXCLUDED.staff_id, hello = EXCLUDED.hello, world = EXCLUDED.world;"
     assert query == expected
-    assert False
+
+def test_data_sorter_sorts_list_of_dicts():
+    d = [
+        {'staff_id':2},
+        {'staff_id':3},
+        {'staff_id':1}
+    ]
+    e = [
+        {'staff_id':1},
+        {'staff_id':2},
+        {'staff_id':3}
+    ]
+    result = data_sorter(d, 'dim_staff')
+    assert result == e
+
+@mock_s3
