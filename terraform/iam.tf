@@ -74,3 +74,7 @@ resource "aws_iam_role_policy_attachment" "lambda_cw_policy_attachment" {
 resource "aws_iam_user" "terraform_state_user" {
   name = "terraform-state-user"
 }
+
+resource "aws_iam_access_key" "terraform_state_access_key" {
+  user = aws_iam_user.terraform_state_user.name
+}
