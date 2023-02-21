@@ -10,7 +10,7 @@ terraform {
 
   backend "s3" {
        bucket = "totes-amazeballs-s3-tfstate"
-       key    = "tfstate"
+       key    = "terraform.tfstate"
        region = "us-east-1"
    }
 }
