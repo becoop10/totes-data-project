@@ -71,7 +71,9 @@ def lambda_handler(event, context):
         for tablekey in processTableNames.keys():
             if datakey in processTableNames[tablekey]:
                 functionList=processTableNames[tablekey]
-                if tablekey=="dim_counterparty" or tablekey=="dim_staff":
+                if tablekey=="dim_counterparty":
+                    formatteddata=functionList[2](dataToBeFormatted[functionList[0]],dataToBeFormatted[functionList[1]])
+                elif tablekey=="dim_staff":
                     formatteddata=functionList[2](dataToBeFormatted[functionList[0]],dataToBeFormatted[functionList[1]])
                 else: 
                     formatteddata=functionList[1](dataToBeFormatted[functionList[0]])
@@ -79,7 +81,8 @@ def lambda_handler(event, context):
                     filestring=f'data/{tablekey}/{timestamp}.parquet'
                     write_file_to_processed_bucket(processed_bucket,filestring,formatteddata)
                     logger.info(f'{tablekey} parquet updated')
-                    updatedfiles.append(filestring)
+                    if filestring not in updatedfiles:
+                        updatedfiles.append(filestring)
                 except:
                     logger.warning("Unknown Error Occurred")
     

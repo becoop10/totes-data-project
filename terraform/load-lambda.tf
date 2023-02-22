@@ -115,5 +115,5 @@ resource "aws_lambda_function" "load_lambda" {
     handler = "load_data.lambda_handler" # Put lambda handler here
     runtime = "python3.9"
     layers = ["arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p39-pandas:11",] # May need to change layer?
-    timeout = "30"
+    timeout = "120"
 }
