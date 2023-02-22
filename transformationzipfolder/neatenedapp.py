@@ -81,3 +81,8 @@ def lambda_handler(event, context):
                 except:
                     logger.warning("Unknown Error Occurred")
     
+    df=pd.DataFrame(updatedfiles,columns=["File names"])
+    out_buffer=BytesIO()
+    df.to_csv(out_buffer,index=False)
+    
+    s3.put_object(Body=out_buffer.getvalue(), Bucket=processed_bucket, Key="updatedfiles.csv")
