@@ -16,7 +16,7 @@ env:
 on:
   push:
     branches:
-      - sandbox-test
+      - sandbox-test-2
     
   workflow_dispatch:
     inputs:
