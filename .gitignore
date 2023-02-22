@@ -4,15 +4,7 @@ Terraform/
 pandastest.py 
 df.parquet
 df.parquet.gzip
-terraform/.terraform*
-terraform/terraform
 function/package/
 .terraform
 .terraform*
-terraform.*
-provider.txt
-.gitignore
-test.py
-test.txt
-passoword
 

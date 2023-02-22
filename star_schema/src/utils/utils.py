@@ -1,5 +1,6 @@
 from star_schema.src.utils.helpers import find_match, remove_keys, time_splitter
 import logging
+import pandas as pd
 
 
 logger = logging.getLogger('DBTransformationLogger')

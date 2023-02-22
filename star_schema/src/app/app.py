@@ -149,6 +149,7 @@ def lambda_handler(event, context):
         processed_bucket, 'data/dim_location.parquet', formatted_location)
     except UnboundLocalError as error:
         logger.info(error.args[0].split(" ")[2], "Table not found")
+
         
 
 
