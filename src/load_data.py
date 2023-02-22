@@ -78,7 +78,7 @@ def read_parquet(s3, path, bucket):
         file=pd.read_parquet(BytesIO(response['Body'].read()))
         return file.to_dict('records')
     except:
-        logger.error('An error occured. Could not read parquet.')
+        logger.error(f'An error occured. Could not read parquet. ${path}')
         raise Exception()
 
 
