@@ -114,7 +114,7 @@ id_columns = {
 }
 
 def query_builder(r, filename):
-    keys = r.keys()
+    keys = list(r.keys())
     values = [r[k] for k in keys]
     update_strings = [f'{k} = EXCLUDED.{k}' for k in keys ]
     full_update_string = ", ".join(update_strings)
