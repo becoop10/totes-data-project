@@ -96,6 +96,7 @@ def write_to_db(conn, query, var_in):
         except Exception as e:
             logger.error('An error occured. Could not write to postgres db.')
             logger.error(e)
+            logger.error(query)
             raise Exception()
 
 
@@ -119,7 +120,7 @@ def query_builder(r, filename):
     update_strings = [f'{k} = EXCLUDED.{k}' for k in keys ]
     full_update_string = ", ".join(update_strings)
     key_string = ", ".join(keys)
-    var_in = (key_string, tuple(values))
+    var_in = (tuple(values),)
     query = f'INSERT INTO {filename} ({key_string}) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
     return query, var_in
 
