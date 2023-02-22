@@ -91,12 +91,6 @@ resource "aws_iam_role_policy_attachment" "lambda_transformed_cw_policy_attachme
     policy_arn = aws_iam_policy.cw_transformed_policy.arn
 }
 
-variable "transform_lambda_name" {
-    description = "Transform lambda function"
-    type = string
-    default = "transform-data"
-}
-
 
 resource "aws_s3_bucket_notification" "bucket_notification" {
   bucket = aws_s3_bucket.ingested_data.id
