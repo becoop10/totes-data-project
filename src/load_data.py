@@ -72,14 +72,19 @@ def read_csv(s3, path, bucket):
         logger.error('An error occured. Could not read csv.')
         raise Exception()
 
-def read_parquet(s3, path, bucket):
+def read_parquets(s3, path, bucket):
     try:
         response = s3.get_object(Bucket=bucket,Key=path)
+    except:
+        logger.error(f'An error occured. Could not get object, Bucket: {bucket}, Path: {path}')
+    try:
         file=pd.read_parquet(BytesIO(response['Body'].read()))
         return file.to_dict('records')
-    except:
-        logger.error(f'An error occured. Could not read parquet. ${path}')
+    except Exception as e:
+        logger.error(e)
+        logger.error(f'An error occured. Could not read parquet. Bucket: {bucket}, Path: {path}')
         raise Exception()
+
 
 
 def write_to_db(conn, query, var_in):
@@ -90,6 +95,8 @@ def write_to_db(conn, query, var_in):
             cur.close()
         except Exception as e:
             logger.error('An error occured. Could not write to postgres db.')
+            logger.error(e)
+            logger.error(query)
             raise Exception()
 
 
@@ -108,17 +115,27 @@ id_columns = {
 }
 
 def query_builder(r, filename):
-    keys = r.keys()
+    keys = list(r.keys())
     values = [r[k] for k in keys]
     update_strings = [f'{k} = EXCLUDED.{k}' for k in keys ]
     full_update_string = ", ".join(update_strings)
-    var_in = (keys, values)
-    query = f'INSERT INTO {filename} (%s) VALUES (%s) ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
+    key_string = ", ".join(keys)
+    var_in = (tuple(values),)
+    query = f'INSERT INTO {filename} ({key_string}) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
     return query, var_in
 
 def data_sorter(data, filename):
     id = id_columns[filename]
     return sorted(data, key=lambda a: a[id] )
+
+def get_file_names(bucket_name,prefix):
+    s3 = boto3.client('s3')
+    response = s3.list_objects(Bucket=bucket_name,Prefix=prefix)
+    try:
+        return [file['Key'] for file in response['Contents']]
+    except KeyError:
+        logger.error("ERROR! No files found")
+        return []
 
 def lambda_handler(event, context):
     conn = build_connection()
@@ -129,12 +146,15 @@ def lambda_handler(event, context):
 
     for f in updated_files:
         filename = f.split('/')[1]
-        data = read_parquet(s3, f, bucket)
-        sorted_data = data_sorter(data, filename)
-        for r in sorted_data:      
-            query, var_in = query_builder(r, filename)
-            write_to_db(conn, query, var_in)
-        logger.info(f'{f} uploaded to warehouse.')
+        file_list = get_file_names(bucket, f'data/{filename}/')
+        for file in file_list:
+            if file == f'{f}':
+                data = read_parquets(s3, file, bucket)
+                sorted_data = data_sorter(data, filename)
+                for r in sorted_data:      
+                    query, var_in = query_builder(r, filename)
+                    write_to_db(conn, query, var_in)
+                logger.info(f'{f} uploaded to warehouse.')
 
 
 '''

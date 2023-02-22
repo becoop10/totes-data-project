@@ -271,6 +271,9 @@ def format_design(raw_designs):
 def format_location(raw_locations):
 
     formatted = remove_keys(raw_locations)
+    for dictionary in formatted:
+        dictionary["location_id"] = dictionary["address_id"]
+        dictionary.pop("address_id")
     return (formatted)
 
 
