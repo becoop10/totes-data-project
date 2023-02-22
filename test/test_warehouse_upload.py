@@ -54,4 +54,3 @@ def test_data_sorter_sorts_list_of_dicts():
     result = data_sorter(d, 'dim_staff')
     assert result == e
 
-@mock_s3

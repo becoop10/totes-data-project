@@ -133,7 +133,7 @@ def lambda_handler(event, context):
 
     for f in updated_files:
         filename = f.split('/')[1]
-        data = read_parquets(s3, f, bucket)
+        data = read_parquets(s3, f'{f}', bucket)
         sorted_data = data_sorter(data, filename)
         for r in sorted_data:      
             query, var_in = query_builder(r, filename)
