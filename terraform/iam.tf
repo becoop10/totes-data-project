@@ -22,10 +22,15 @@ resource "aws_iam_role" "ingest_lambda_role" {
 
 data "aws_iam_policy_document" "s3_document" {
     statement {
-        actions = ["s3:PutObject"]
+        actions = [
+          "s3:PutObject",
+          "s3:ListAllMyBuckets",
+          "s3:ListBucket"
+          ]
 
         resources = [
-            "${aws_s3_bucket.ingested_data.arn}/*"
+            "${aws_s3_bucket.ingested_data.arn}/*",
+            "arn:aws:s3:::*"
         ]
     }
 }
