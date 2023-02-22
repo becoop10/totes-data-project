@@ -271,6 +271,8 @@ def format_design(raw_designs):
 def format_location(raw_locations):
 
     formatted = remove_keys(raw_locations)
+    formatted["location_id"] = formatted["address_id"]
+    formatted.pop("address_id")
     return (formatted)
 
 
