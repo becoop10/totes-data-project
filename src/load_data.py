@@ -118,8 +118,9 @@ def query_builder(r, filename):
     values = [r[k] for k in keys]
     update_strings = [f'{k} = EXCLUDED.{k}' for k in keys ]
     full_update_string = ", ".join(update_strings)
-    var_in = (tuple(keys), tuple(values))
-    query = f'INSERT INTO {filename} %s VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
+    key_string = ", ".join(keys)
+    var_in = (key_string, tuple(values))
+    query = f'INSERT INTO {filename} (%s) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
     return query, var_in
 
 def data_sorter(data, filename):
