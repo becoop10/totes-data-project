@@ -118,10 +118,10 @@ resource "aws_lambda_permission" "allow_s3" {
 resource "aws_lambda_function" "transform_lambda" {
     # s3_bucket=aws_s3_bucket.lambda_bucket.id
     # s3_key="/ingest.zip"
-    filename = "../transformationzipfolder/deployment1.zip"
+    filename = "../src/transform_deployment.zip"
     function_name = "${var.transform_lambda_name}"
     role = aws_iam_role.transform_lambda_role.arn
-    handler = "neatenedapp.lambda_handler"
+    handler = "transform_data.lambda_handler"
     runtime = "python3.9"
     layers = ["arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p39-pandas:11",]
     timeout = "30"

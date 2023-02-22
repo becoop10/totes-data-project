@@ -109,10 +109,10 @@ resource "aws_lambda_permission" "load_allow_s3" {
 
 
 resource "aws_lambda_function" "load_lambda" {
-    filename = "../src/deployment_warehouse.zip" # Put filepath to load zip here
+    filename = "../src/load_deployment.zip" # Put filepath to load zip here
     function_name = "${var.load_lambda_name}"
     role = aws_iam_role.load_lambda_role.arn
-    handler = "warehouse_upload.lambda_handler" # Put lambda handler here
+    handler = "load_data.lambda_handler" # Put lambda handler here
     runtime = "python3.9"
     layers = ["arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p39-pandas:11",] # May need to change layer?
     timeout = "30"
