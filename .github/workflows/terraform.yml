@@ -1,0 +1,70 @@
+name: Terraform Deploy
+
+env:
+  TF_VAR_TOTESYS_DB_HOST: ${{ secrets.TOTESYS_DB_HOST }}
+  TF_VAR_TOTESYS_DB_PORT: ${{ secrets.TOTESYS_DB_PORT }}
+  TF_VAR_TOTESYS_DB_DATABASE: ${{ secrets.TOTESYS_DB_DATABASE }}
+  TF_VAR_TOTESYS_DB_USER: ${{ secrets.TOTESYS_DB_USER }}
+  TF_VAR_TOTESYS_DB_PASSWORD: ${{ secrets.TOTESYS_DB_PASSWORD }}
+
+  TF_VAR_DATA_WAREHOUSE_HOST: ${{ secrets.DATA_WAREHOUSE_HOST }}
+  TF_VAR_DATA_WAREHOUSE_PORT: ${{ secrets.DATA_WAREHOUSE_PORT }}
+  TF_VAR_DATA_WAREHOUSE_DATABASE: ${{ secrets.DATA_WAREHOUSE_DATABASE }}
+  TF_VAR_DATA_WAREHOUSE_USER: ${{ secrets.DATA_WAREHOUSE_USER }}
+  TF_VAR_DATA_WAREHOUSE_PASSWORD: ${{ secrets.DATA_WAREHOUSE_PASSWORD }}
+
+on:
+  push:
+    branches:
+      - sandbox-test-2
+    
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: string
+        default: dev
+        required: false
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
+
+      - name: AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Terraform Format
+        id: fmt
+        run: terraform fmt -check
+
+      - name: Terraform Init
+        working-directory: ./terraform
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: ./terraform
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        id: plan
+        run: terraform plan -no-color -input=false 
+
+      - name: Terraform Apply
+        working-directory: ./terraform
+        id: apply
+        run: terraform apply -auto-approve -input=false
+        

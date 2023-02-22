@@ -1,6 +1,6 @@
 resource "aws_cloudwatch_event_rule" "scheduler" {
     name_prefix = "data-ingester-scheduler-"
-    schedule_expression = "rate(1 minute)"
+    schedule_expression = "rate(4 minutes)"
 }
 
 resource "aws_lambda_permission" "allow_scheduler" {
