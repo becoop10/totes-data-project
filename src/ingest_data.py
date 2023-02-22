@@ -195,6 +195,7 @@ def lambda_handler(event, context):
             data = format_data(updated_rows, headers)
             write_to_s3(s3, file_path, data, bucket_name)
         if count > 0:
+            logger.info(f'{count}')
             s3.put_object(Body=f'{new_timestamp}', Bucket=bucket_name, Key="data/timestamp.txt")
             #s3.put_object(Body=f'{last_timestamp}', Bucket=bucket_name_list[1], Key="data/timestamp.txt")
             
