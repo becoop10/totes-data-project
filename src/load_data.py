@@ -72,14 +72,18 @@ def read_csv(s3, path, bucket):
         logger.error('An error occured. Could not read csv.')
         raise Exception()
 
-def read_parquet(s3, path, bucket):
+def read_parquets(s3, path, bucket):
     try:
         response = s3.get_object(Bucket=bucket,Key=path)
+    except:
+        logger.error(f'An error occured. Could not get object, Bucket: {bucket}, Path: {path}')
+    try:
         file=pd.read_parquet(BytesIO(response['Body'].read()))
         return file.to_dict('records')
     except:
-        logger.error(f'An error occured. Could not read parquet. ${path}')
+        logger.error(f'An error occured. Could not read parquet. Bucket: {bucket}, Path: {path}')
         raise Exception()
+
 
 
 def write_to_db(conn, query, var_in):
@@ -129,7 +133,7 @@ def lambda_handler(event, context):
 
     for f in updated_files:
         filename = f.split('/')[1]
-        data = read_parquet(s3, f, bucket)
+        data = read_parquets(s3, f, bucket)
         sorted_data = data_sorter(data, filename)
         for r in sorted_data:      
             query, var_in = query_builder(r, filename)
