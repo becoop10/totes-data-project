@@ -95,6 +95,7 @@ def write_to_db(conn, query, var_in):
             cur.close()
         except Exception as e:
             logger.error('An error occured. Could not write to postgres db.')
+            logger.error(e)
             raise Exception()
 
 
