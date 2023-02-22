@@ -1,4 +1,4 @@
-from src.warehouse_upload import (read_csv, read_parquet, write_to_db, query_builder, data_sorter)
+from src.load_data import (read_csv, read_parquets, write_to_db, query_builder, data_sorter)
 import pytest
 import pandas as pd
 from io import BytesIO
@@ -15,7 +15,7 @@ def test_read_parquet_reads_from_parquet_at_path():
     out_buffer = BytesIO()
     df.to_parquet(out_buffer, index=False)
     conn.put_object(Bucket=BUCKETNAME, Key='test_parquet', Body=out_buffer.getvalue())
-    result = read_parquet(conn, 'test_parquet', BUCKETNAME)
+    result = read_parquets(conn, 'test_parquet', BUCKETNAME)
 
     assert result == list
 
@@ -37,7 +37,14 @@ def test_read_csv_reads_from_csv_at_path():
 def test_query_builder_writes_query():
     r = { 'staff_id': 1, 'hello':2, 'world': 3}
     query, var_in = query_builder(r, 'dim_staff')
-    expected = "INSERT INTO dim_staff (%s) VALUES (%s) ON CONFLICT (staff_id) DO UPDATE SET staff_id = EXCLUDED.staff_id, hello = EXCLUDED.hello, world = EXCLUDED.world;"
+    expected = "INSERT INTO dim_staff (staff_id, hello, world) VALUES %s ON CONFLICT (staff_id) DO UPDATE SET staff_id = EXCLUDED.staff_id, hello = EXCLUDED.hello, world = EXCLUDED.world;"
+    assert query == expected
+
+@mock_s3 
+def test_query_builder_writes_query_for_fact():
+    r = { 'payment_id': 1, 'hello':2, 'world': 3}
+    query, var_in = query_builder(r, 'fact_payment')
+    expected = 'IF 1 IN (select payment_id FROM fact_payment) UPDATE fact_payment SET payment_id = 1, hello = 2, world = 3 ELSE INSERT INTO fact_payment (payment_id, hello, world) VALUES %s'
     assert query == expected
 
 def test_data_sorter_sorts_list_of_dicts():

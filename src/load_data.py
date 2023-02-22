@@ -125,8 +125,8 @@ def query_builder(r, filename):
     if 'dim' in filename:
         query = f'INSERT INTO {filename} ({key_string}) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
     else:
-
-        query = f'IF {id_columns[filename]} IN (select {id_columns[filename]} FROM table) UPDATE table SET key = value ,....; ELSE INSERT INTO table (serialid,key_strings) VALUES %s'
+        id_v = values[keys.index(id_columns[filename])]
+        query = f'IF {id_v} IN (select {id_columns[filename]} FROM {filename}) UPDATE {filename} SET {full_fact_update_string} ELSE INSERT INTO {filename} ({key_string}) VALUES %s'
     return query, var_in
 
 def data_sorter(data, filename):
