@@ -24,12 +24,14 @@ def lambda_handler(event, context):
         logger.error("ERROR! No buckets found")
         raise Exception("NO BUCKETS TO RETRIEVE DATA")
 
-
     timestamp=s3.get_object(Bucket=ingested_bucket,Key="data/timestamp.txt")['Body'].read().decode('utf-8')
+
 
     file_list = get_file_names(ingested_bucket,f'data/{timestamp}/')
 
-    tablenames=["sales_order","counterparty","currency","department","design","staff","address","payment_type","payment","purchase_order","transaction"]
+
+    ingestedTableNames=["sales_order","counterparty","currency","department","design","staff","address","payment_type","payment","purchase_order","transaction"]
+
     dataToBeFormatted={}
     updatedfiles=[]
     
@@ -40,7 +42,7 @@ def lambda_handler(event, context):
             addressfile=file
         if "department" in file:
             departfile=file
-        for table in tablenames:
+        for table in ingestedTableNames:
             if file==f'data/{timestamp}/{table}.json':
                 dataToBeFormatted[f'{table}_data']=get_file_contents(ingested_bucket,file)
                 if table=="counterparty" and f'data/{timestamp}/address' not in file_list:
@@ -49,102 +51,40 @@ def lambda_handler(event, context):
                 if table=="staff" and f'data/{timestamp}/department' not in file_list:
                     
                     dataToBeFormatted['department_data']=get_file_contents(ingested_bucket,departfile)
-                tablenames.remove(table)
-                
-                
+                ingestedTableNames.remove(table)
 
 
+    processTableNames={"dim_counterparty":['counterparty_data','address_data',format_counterparty],
+                        "dim_currency":['currency_data',format_currency],
+                        "dim_transaction":['transaction_data',format_transaction],
+                        "dim_design":['design_data',format_design],
+                        "dim_payment_type":['payment_type_data',format_payment_type],
+                        "fact_payment":['payment_data',format_payments],
+                        "fact_purchase_order":["purchase_order_data",format_purchase],
+                        "fact_sales_order":["sales_order_data",format_sales_facts],
+                        "dim_staff":["staff_data","department_data",format_staff],
+                        "dim_location":["address_data",format_location]
+    }
+
+
+    for datakey in dataToBeFormatted.keys():
+        for tablekey in processTableNames.keys():
+            if datakey in processTableNames[tablekey]:
+                functionList=processTableNames[tablekey]
+                if tablekey=="dim_counterparty" or tablekey=="dim_staff":
+                    formatteddata=functionList[2](dataToBeFormatted[functionList[0]],dataToBeFormatted[functionList[1]])
+                else: 
+                    formatteddata=functionList[1](dataToBeFormatted[functionList[0]])
+                try:
+                    filestring=f'data/{tablekey}/{timestamp}.parquet'
+                    write_file_to_processed_bucket(processed_bucket,filestring,formatteddata)
+                    logger.info(f'{tablekey} parquet updated')
+                    updatedfiles.append(filestring)
+                except:
+                    logger.warning("Unknown Error Occurred")
     
+    df=pd.DataFrame(updatedfiles,columns=["File names"])
+    out_buffer=BytesIO()
+    df.to_csv(out_buffer,index=False)
     
-    try:
-        formatted_counterparty = format_counterparty(dataToBeFormatted['counterparty_data'],dataToBeFormatted['address_data'])
-        write_file_to_processed_bucket(
-        processed_bucket, f'data/dim_counterparty/{timestamp}.parquet', formatted_counterparty)
-        logger.info("dim_counterparty parquet updated")
-        updatedfiles.append(f'data/dim_counterparty/{timestamp}.parquet')
-    except KeyError as error:
-        logger.info("Counterparty has no new data")
- 
-    try:
-        formatted_currency = format_currency(dataToBeFormatted['currency_data'])
-        write_file_to_processed_bucket(
-        processed_bucket, f'data/dim_currency/{timestamp}.parquet', formatted_currency)
-        logger.info("dim_currency parquet updated")
-        updatedfiles.append(f'data/dim_currency/{timestamp}.parquet')
-    except KeyError as error:
-        logger.info("Currency has no new data")
-
-    try:
-        formatted_transaction = format_transaction(dataToBeFormatted['transaction_data'])
-        write_file_to_processed_bucket(
-        processed_bucket, f'data/dim_transaction/{timestamp}.parquet', formatted_transaction)
-        logger.info("dim_transaction parquet updated")
-        updatedfiles.append(f'data/dim_transaction/{timestamp}.parquet')
-    except KeyError as error:
-        logger.info("Transaction has no new data")
-
-    try:
-        formatted_design=format_design(dataToBeFormatted['design_data'])
-        write_file_to_processed_bucket(
-        processed_bucket, f'data/dim_design/{timestamp}.parquet', formatted_design)
-        logger.info("dim_design parquet updated")
-        updatedfiles.append(f'data/dim_design/{timestamp}.parquet')
-    except KeyError as error:
-        logger.info("Design has no new data")
-
-    try:
-        formatted_payment_type=format_payment_type(dataToBeFormatted['payment_type_data'])
-        write_file_to_processed_bucket(
-        processed_bucket, f'data/dim_payment_type/{timestamp}.parquet', formatted_payment_type)
-        logger.info("dim_payment parquet updated")
-        updatedfiles.append(f'data/dim_payment_type/{timestamp}.parquet')
-    except KeyError as error:
-        logger.info("Payment type has no new data")
-
-    try:
-        formatted_payments=format_payments(dataToBeFormatted['payment_data'])
-        write_file_to_processed_bucket(
-        processed_bucket, f'data/fact_payment/{timestamp}.parquet', formatted_payments)
-        logger.info("fact_payment parquet updated")
-        updatedfiles.append(f'data/fact_payment/{timestamp}.parquet')
-    except KeyError as error:
-        logger.info("Payments have no new data")
-
-    try:
-        formatted_purchase=format_purchase(dataToBeFormatted['purchase_order_data'])
-        write_file_to_processed_bucket(
-        processed_bucket, f'data/fact_purchase_order/{timestamp}.parquet', formatted_purchase)
-        logger.info("fact_purchase parquet updated")
-        updatedfiles.append(f'data/fact_purchase_order/{timestamp}.parquet')
-    except KeyError as error:
-        logger.info("Purchase has no new data")
-
-    try:
-        formatted_sales = format_sales_facts(dataToBeFormatted['sales_order_data'])
-        write_file_to_processed_bucket(
-        processed_bucket, f'data/fact_sales_order/{timestamp}.parquet', formatted_sales)
-        logger.info("fact_sales parquet updated")
-        updatedfiles.append(f'data/fact_sales_order/{timestamp}.parquet')
-    except KeyError as error:
-        logger.info("Sales has no new data")
-
-    try:
-        formatted_staff=format_staff(dataToBeFormatted['staff_data'],dataToBeFormatted['department_data'])
-        write_file_to_processed_bucket(
-        processed_bucket, f'data/dim_staff/{timestamp}.parquet', formatted_staff)
-        logger.info("dim_staff parquet updated")
-        updatedfiles.append(f'data/dim_staff/{timestamp}.parquet')
-    except KeyError as error:
-        logger.info("Staff has no new data")
-
-    try:       
-        formatted_location=format_location(dataToBeFormatted['address_data'])
-        write_file_to_processed_bucket(
-        processed_bucket, f'data/dim_location/{timestamp}.parquet', formatted_location)
-        logger.info("dim_location parquet updated")
-        updatedfiles.append(f'data/dim_location/{timestamp}.parquet')
-    except KeyError as error:
-        logger.info("Location has no new data")
-    
-    s3.put_object(Body=updatedfiles, Bucket=processed_bucket, Key="updatedfiles.txt")
- 
+    s3.put_object(Body=out_buffer.getvalue(), Bucket=processed_bucket, Key="updatedfiles.csv")

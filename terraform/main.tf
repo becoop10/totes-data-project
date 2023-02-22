@@ -4,6 +4,10 @@ terraform {
       source = "hashicorp/aws"
       version = "~>3.27"
     }
+    klayers = {
+      version = "~> 1.0.0"
+      source  = "ldcorentin/klayer"
+    }
   }
 
   required_version = ">=0.14.9"
