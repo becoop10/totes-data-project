@@ -13,7 +13,7 @@ terraform {
   required_version = ">=0.14.9"
 
   backend "s3" {
-       bucket = "totes-amazeballs-s3-tfstate-1"
+       bucket = "totes-amazeballs-s3-tfstate"
        key    = "terraform.tfstate"
        region = "us-east-1"
    }
@@ -26,7 +26,7 @@ provider "aws" {
 
 
 resource "aws_s3_bucket" "terraform_state" {
-  bucket = "totes-amazeballs-s3-tfstate-1"
+  bucket = "totes-amazeballs-s3-tfstate"
 }
 
 resource "aws_s3_bucket_versioning" "terraform_state" {
