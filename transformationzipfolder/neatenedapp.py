@@ -26,10 +26,12 @@ def lambda_handler(event, context):
 
     timestamp=s3.get_object(Bucket=ingested_bucket,Key="data/timestamp.txt")['Body'].read().decode('utf-8')
 
+
     file_list = get_file_names(ingested_bucket,f'data/{timestamp}/')
 
 
     ingestedTableNames=["sales_order","counterparty","currency","department","design","staff","address","payment_type","payment","purchase_order","transaction"]
+
     dataToBeFormatted={}
     updatedfiles=[]
     
