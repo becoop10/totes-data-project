@@ -1,16 +1,22 @@
 name: Terraform Deploy
 
 env:
-  TF_VAR_TOTESYS_DB_HOST: ${{ secrets.TOTESYS_DB_HOST}}
-  TF_VAR_TOTESYS_DB_PORT: ${{ secrets.TOTESYS_DB_PORT}}
-  TF_VAR_TOTESYS_DB_DATABASE: ${{ secrets.TOTESYS_DB_DATABASE}}
-  TF_VAR_TOTESYS_DB_USER: ${{ secrets.TOTESYS_DB_USER}}
-  TF_VAR_TOTESYS_DB_PASSWORD: ${{ secrets.TOTESYS_DB_PASSWORD}}
+  TF_VAR_TOTESYS_DB_HOST: ${{ secrets.TOTESYS_DB_HOST }}
+  TF_VAR_TOTESYS_DB_PORT: ${{ secrets.TOTESYS_DB_PORT }}
+  TF_VAR_TOTESYS_DB_DATABASE: ${{ secrets.TOTESYS_DB_DATABASE }}
+  TF_VAR_TOTESYS_DB_USER: ${{ secrets.TOTESYS_DB_USER }}
+  TF_VAR_TOTESYS_DB_PASSWORD: ${{ secrets.TOTESYS_DB_PASSWORD }}
+
+  TF_VAR_DATA_WAREHOUSE_HOST: ${{ secrets.DATA_WAREHOUSE_HOST }}
+  TF_VAR_DATA_WAREHOUSE_PORT: ${{ secrets.DATA_WAREHOUSE_PORT }}
+  TF_VAR_DATA_WAREHOUSE_DATABASE: ${{ secrets.DATA_WAREHOUSE_DATABASE }}
+  TF_VAR_DATA_WAREHOUSE_USER: ${{ secrets.DATA_WAREHOUSE_USER }}
+  TF_VAR_DATA_WAREHOUSE_PASSWORD: ${{ secrets.DATA_WAREHOUSE_PASSWORD }}
 
 on:
   push:
     branches:
-      - secrets-manager
+      - more-secrets/actions
     
   workflow_dispatch:
     inputs:
@@ -25,9 +31,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Debug
-        run: ls -al
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v2

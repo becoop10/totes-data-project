@@ -124,7 +124,7 @@ resource "aws_lambda_permission" "allow_s3" {
 resource "aws_lambda_function" "transform_lambda" {
     # s3_bucket=aws_s3_bucket.lambda_bucket.id
     # s3_key="/ingest.zip"
-    filename = "../function/lambdalayer.zip"
+    filename = "../transformationzipfolder/deployment1.zip"
     function_name = "${var.transform_lambda_name}"
     role = aws_iam_role.transform_lambda_role.arn
     handler = "neatenedapp.lambda_handler"
