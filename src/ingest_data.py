@@ -1,11 +1,12 @@
 import json
 import datetime
 import boto3
-import logging 
+import logging
 import psycopg2
 import os
 import botocore.exceptions
 from botocore.exceptions import ClientError
+
 
 def get_secret():
 
@@ -30,6 +31,7 @@ def get_secret():
     secret = get_secret_value_response['SecretString']
     return json.loads(secret)
 
+
 db = get_secret()
 host = db['host']
 username = db['username']
@@ -38,15 +40,16 @@ database = db['dbname']
 port = db['port']
 
 conn = psycopg2.connect(
-    host = host,
-    database = database,
-    user = username,
-    password = password,
-    port = port
+    host=host,
+    database=database,
+    user=username,
+    password=password,
+    port=port
 )
 
 logger = logging.getLogger('TotesysQueryLogger')
 logger.setLevel(logging.INFO)
+
 
 def write_to_s3(s3, table_name, data, bucket):
     '''
@@ -59,7 +62,8 @@ def write_to_s3(s3, table_name, data, bucket):
         logger.error('An error occured.')
         raise Exception()
 
-def read_from_s3(s3,bucket, key):
+
+def read_from_s3(s3, bucket, key):
     try:
         content = s3.get_object(Bucket=bucket, Key=key)
         content = content['Body'].read().decode('ascii')
@@ -69,6 +73,7 @@ def read_from_s3(s3,bucket, key):
     except Exception as e:
         print(e)
         raise Exception()
+
 
 def format_data(data, headers):
     '''
@@ -104,19 +109,20 @@ def write_timestamp():
         logger.error('An error occured.')
         raise Exception()
 
+
 def retrieve_timestamp():
     try:
         if 'totesys_last_read' in os.environ:
-           return os.environ['totesys_last_read']
+            return os.environ['totesys_last_read']
         else:
-            return datetime.datetime(1970,1,1).isoformat()
+            return datetime.datetime(1970, 1, 1).isoformat()
     except:
         logger.error('An error occured.')
         raise Exception()
 
 
 def lambda_handler(event, context):
-    with conn:         
+    with conn:
         s3 = boto3.client('s3')
         tables = [
             'counterparty',
@@ -134,16 +140,17 @@ def lambda_handler(event, context):
         last_timestamp = retrieve_timestamp()
         write_timestamp()
         for table in tables:
-            #Check for updates
-            updates = read_db(f'SELECT * FROM {table} WHERE last_updated >= %s;', (last_timestamp,))
+            # Check for updates
+            updates = read_db(
+                f'SELECT * FROM {table} WHERE last_updated >= %s;', (last_timestamp,))
             if len(updates) > 0:
-                #Reads table data
+                # Reads table data
                 result = read_db(f'SELECT * FROM {table};', ())
-                headers = read_db("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (table,))
-                #format data
+                headers = read_db(
+                    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (table,))
+                # format data
                 data = format_data(result, headers)
-                #write to s3 bucket
-                write_to_s3(s3, table, data, 'totes-amazeballs-s3-ingested-data-bucket-12345' )
+                # write to s3 bucket
+                write_to_s3(s3, table, data,
+                            'totes-amazeballs-s3-ingested-data-bucket-12345')
                 logger.info(f'{table} table updated.')
-
-

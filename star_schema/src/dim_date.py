@@ -6,6 +6,7 @@ import boto3
 from botocore.exceptions import ClientError
 import json
 
+
 def get_secret():
 
     secret_name = "tote-warehouse"
@@ -29,6 +30,7 @@ def get_secret():
     secret = get_secret_value_response['SecretString']
     return json.loads(secret)
 
+
 db = get_secret()
 host = db['host']
 username = db['username']
@@ -37,15 +39,18 @@ database = db['dbname']
 port = db['port']
 
 conn = psycopg2.connect(
-    host = host,
-    database = database,
-    user = username,
-    password = password,
-    port = port
+    host=host,
+    database=database,
+    user=username,
+    password=password,
+    port=port
 )
 
-months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
-days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+months = ['January', 'February', 'March', 'April', 'May', 'June',
+          'July', 'August', 'September', 'October', 'November', 'December']
+days = ['Monday', 'Tuesday', 'Wednesday',
+        'Thursday', 'Friday', 'Saturday', 'Sunday']
+
 
 def write_to_db(query, var_in):
     with conn.cursor() as cur:
@@ -57,6 +62,7 @@ def write_to_db(query, var_in):
             # logger.error('An error occured.')
             print(e)
             raise Exception()
+
 
 def write_table():
     write_to_db('DELETE FROM dim_date;', ('',))
@@ -70,8 +76,9 @@ def write_table():
             d.isoweekday(),
             days[d.weekday()],
             months[d.month - 1],
-            math.ceil(d.month / 3 )
+            math.ceil(d.month / 3)
         )
         write_to_db(query, values)
+
 
 write_table()

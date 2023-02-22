@@ -241,8 +241,9 @@ def format_payment_type(raw_data):
     formatted_data = remove_keys(raw_data)
     return formatted_data
 
+
 def format_transaction(raw_data):
-    formatted_data=remove_keys(raw_data)
+    formatted_data = remove_keys(raw_data)
     return formatted_data
 
 
