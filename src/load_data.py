@@ -124,6 +124,15 @@ def data_sorter(data, filename):
     id = id_columns[filename]
     return sorted(data, key=lambda a: a[id] )
 
+def get_file_names(bucket_name,prefix):
+    s3 = boto3.client('s3')
+    response = s3.list_objects(Bucket=bucket_name,Prefix=prefix)
+    try:
+        return [file['Key'] for file in response['Contents']]
+    except KeyError:
+        logger.error("ERROR! No files found")
+        return []
+
 def lambda_handler(event, context):
     conn = build_connection()
     s3 = boto3.client('s3')
@@ -133,12 +142,15 @@ def lambda_handler(event, context):
 
     for f in updated_files:
         filename = f.split('/')[1]
-        data = read_parquets(s3, f'{f}', bucket)
-        sorted_data = data_sorter(data, filename)
-        for r in sorted_data:      
-            query, var_in = query_builder(r, filename)
-            write_to_db(conn, query, var_in)
-        logger.info(f'{f} uploaded to warehouse.')
+        file_list = get_file_names(bucket, f'data/{filename}/')
+        for file in file_list:
+            if file == f'{f}':
+                data = read_parquets(s3, file, bucket)
+                sorted_data = data_sorter(data, filename)
+                for r in sorted_data:      
+                    query, var_in = query_builder(r, filename)
+                    write_to_db(conn, query, var_in)
+                logger.info(f'{f} uploaded to warehouse.')
 
 
 '''
