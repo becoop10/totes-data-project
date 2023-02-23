@@ -131,7 +131,7 @@ def query_builder(r, filename):
         # query = f'INSERT INTO {filename} ({key_string}) VALUES %s WHERE {id_v} NOT IN (select {id_columns[filename]} FROM {filename});\
         #           UPDATE {filename} SET {full_fact_update_string} WHERE {id_v} IN (select {id_columns[filename]} FROM {filename});'
 
-        query = f'DO \' declare comparrison INT:={id_v}; \
+        query = f'DO $$ declare comparrison INT:={id_v}; \
                 BEGIN \
                 IF comparrison IN (select {id_columns[filename]} FROM {filename}) THEN \
                 UPDATE {filename} SET {full_fact_update_string} WHERE {id_columns[filename]}={id_v}; \
@@ -139,7 +139,7 @@ def query_builder(r, filename):
                 INSERT INTO {filename} \
                 ({key_string}) VALUES %s; \
                 END IF; \
-                END; \''
+                END; $$'
                   
     return query, var_in
 
