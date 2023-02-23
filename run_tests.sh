@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Run pytest
-pytest
+pytest star_schema/test/ test/
 
 # Check for autopep8 compliance
 autopep8 --recursive --diff function/ src/ star_schema/src/ star_schema/src/app/ star_schema/src/utils/ star_schema/test/ test/
