@@ -40,6 +40,8 @@ def get_file_contents(bucket_name, file_name):
 def write_file_to_processed_bucket(bucket_name, key, list):
     s3 = boto3.client('s3')
     pandadataframe = pd.DataFrame(list)
+    if 'dim_transaction' in key:
+        pandadataframe = pandadataframe.replace(np.nan, None)
     out_buffer = BytesIO()
     pandadataframe.to_parquet(out_buffer, index=False)
     s3.put_object(Bucket=bucket_name, Key=key, Body=out_buffer.getvalue())
