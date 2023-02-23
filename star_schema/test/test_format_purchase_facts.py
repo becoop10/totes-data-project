@@ -1,4 +1,4 @@
-from star_schema.src.utils.utils import format_purchase
+from src.transform_package.myutils import format_purchase
 
 
 def test_format_purchases_correctly_formats_list_containing_one_sale():

@@ -1,4 +1,4 @@
-from star_schema.src.utils.utils import format_design
+from src.transform_package.myutils import format_design
 
 
 def test_format_design_formats_for_single_item_input():

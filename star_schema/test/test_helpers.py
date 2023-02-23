@@ -1,4 +1,4 @@
-from star_schema.src.utils.helpers import find_match, time_splitter, remove_keys
+from src.transform_package.myutils import find_match, time_splitter, remove_keys
 import pytest
 
 

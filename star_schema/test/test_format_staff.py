@@ -1,4 +1,4 @@
-from star_schema.src.utils.utils import format_staff
+from src.transform_package.myutils import format_staff
 import pytest
 import logging
 

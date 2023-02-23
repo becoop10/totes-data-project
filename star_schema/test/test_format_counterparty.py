@@ -1,4 +1,4 @@
-from star_schema.src.utils.utils import format_counterparty
+from src.transform_package.myutils import format_counterparty
 import pytest
 from unittest.mock import patch
 import logging
