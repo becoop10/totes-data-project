@@ -7,3 +7,7 @@ function/package/
 .terraform
 .terraform*
 package
+.gitignore
+*old*
+requirements.txt
+*test*
