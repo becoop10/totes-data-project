@@ -102,15 +102,15 @@ def write_to_db(conn, query, var_in):
 
 id_columns = {
     'dim_staff' : 'staff_id',
-    'fact_purchase_order' : 'purchase_order_id',
-    'fact_sales_order' : 'sales_order_id',
     'dim_counterparty' : 'counterparty_id',
     'dim_currency' : 'currency_id',
     'dim_design' : 'design_id',
     'dim_location' : 'location_id',
     'dim_payment_type' : 'payment_type_id',
-    'fact_payment' : 'payment_id',
-    'dim_transaction' : 'transaction_id'
+    'dim_transaction' : 'transaction_id',
+    'fact_sales_order' : 'sales_order_id',
+    'fact_purchase_order' : 'purchase_order_id',
+    'fact_payment' : 'payment_id'
 }
 
 def query_builder(r, filename):
@@ -143,17 +143,19 @@ def lambda_handler(event, context):
     bucket = get_bucket_names()[1]
     updated_files = read_csv(s3, csv_key, bucket)
 
-    for f in updated_files:
-        filename = f.split('/')[1]
-        file_list = sorted(get_file_names(bucket, f'data/{filename}/'))
-        for file in file_list:
-            if file == f'{f}':
-                data = read_parquets(s3, file, bucket)
-                sorted_data = data_sorter(data, filename)
-                for r in sorted_data:      
-                    query, var_in = query_builder(r, filename)
-                    write_to_db(conn, query, var_in)
-                logger.info(f'{f} uploaded to warehouse.')
+    for key in list(id_columns.keys()):
+        for f in updated_files:
+            if key in f:
+                filename = f.split('/')[1]
+                file_list = sorted(get_file_names(bucket, f'data/{filename}/'))
+                for file in file_list:
+                    if file == f'{f}':
+                        data = read_parquets(s3, file, bucket)
+                        sorted_data = data_sorter(data, filename)
+                        for r in sorted_data:      
+                            query, var_in = query_builder(r, filename)
+                            write_to_db(conn, query, var_in)
+                        logger.info(f'{f} uploaded to warehouse.')
 
 
 '''
