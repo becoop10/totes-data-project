@@ -122,7 +122,7 @@ def query_builder(r, filename):
     full_fact_update_string = ", ".join(fact_update_strings)
     key_string = ", ".join(keys)
     if 'dim' in filename:
-    var_in = (tuple(values), )
+        var_in = (tuple(values), )
         query = f'INSERT INTO {filename} ({key_string}) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
     else:
         var_in = tuple(values)
