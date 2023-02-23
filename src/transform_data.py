@@ -83,8 +83,8 @@ def lambda_handler(event, context):
                     logger.info(f'{tablekey} parquet updated')
                     if filestring not in updatedfiles:
                         updatedfiles.append(filestring)
-                except:
-                    logger.warning("Unknown Error Occurred")
+                except Exception as e:
+                    logger.error(e)
     
     df=pd.DataFrame(updatedfiles,columns=["File names"])
     out_buffer=BytesIO()
