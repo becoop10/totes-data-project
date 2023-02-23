@@ -40,8 +40,8 @@ jobs:
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: AKIA6RK6EXMCHBIGVXOG #${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: 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 #${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: AKIAVPN2GSYLORWJCLVM #${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: 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 #${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
       - name: Terraform Format
