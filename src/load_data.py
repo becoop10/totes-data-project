@@ -4,7 +4,7 @@ import pandas as pd
 from io import BytesIO
 from botocore.exceptions import ClientError
 import json
-import logging 
+import logging
 logger = logging.getLogger('WarehouseUploaderLogger')
 logger.setLevel(logging.INFO)
 
@@ -79,6 +79,7 @@ def read_parquets(s3, path, bucket):
         logger.error(f'An error occured. Could not get object, Bucket: {bucket}, Path: {path}')
     try:
         file=pd.read_parquet(BytesIO(response['Body'].read()))
+        file=file.replace(pd.np.nan, None)
         return file.to_dict('records')
     except Exception as e:
         logger.error(e)

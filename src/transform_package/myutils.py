@@ -284,10 +284,6 @@ def format_payment_type(raw_data):
 
 def format_transaction(raw_data):
     formatted_data=remove_keys(raw_data)
-    for dictionary in formatted_data:
-        for key in list(dictionary.keys()):
-            if math.isnan(dictionary[key]):
-                dictionary[key] = None
     return formatted_data
 
 
