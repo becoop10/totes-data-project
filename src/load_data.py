@@ -126,7 +126,7 @@ def query_builder(r, filename):
         query = f'INSERT INTO {filename} ({key_string}) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
     else:
         id_v = values[keys.index(id_columns[filename])]
-        query = f'IF {id_v} IN (select {id_columns[filename]} FROM {filename}) THEN UPDATE {filename} SET {full_fact_update_string} ; ELSE INSERT INTO {filename} ({key_string}) VALUES %s ; END IF ;'
+        query = f'UPDATE {filename} SET {full_fact_update_string} WHERE {id_v} IN (select {id_columns[filename]} FROM {filename}); INSERT INTO {filename} ({key_string}) VALUES %s WHERE {id_v} NOT IN (select {id_columns[filename]} FROM {filename})'
     return query, var_in
 
 def data_sorter(data, filename):
