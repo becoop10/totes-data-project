@@ -110,7 +110,7 @@ id_columns = {
     'dim_location' : 'location_id',
     'fact_sales_order' : 'sales_record_id',
     'dim_payment_type' : 'payment_type_id',
-    'fact_payment' : 'payment_record_id',
+    'fact_payment' : 'payment_id',
     'dim_transaction' : 'transaction_id'
 }
 
