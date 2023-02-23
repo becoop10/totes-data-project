@@ -125,8 +125,7 @@ def query_builder(r, filename):
         var_in = (tuple(values), )
         query = f'INSERT INTO {filename} ({key_string}) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
     else:
-        var_in = tuple(values)
-        var_in.append(tuple(values))
+        var_in = tuple(values) + (tuple(values), )
         id_v = values[keys.index(id_columns[filename])]
         query = f'UPDATE {filename} SET {full_fact_update_string} WHERE {id_v} IN (select {id_columns[filename]} FROM {filename});\
                   INSERT INTO {filename} ({key_string}) VALUES %s WHERE {id_v} NOT IN (select {id_columns[filename]} FROM {filename});'
