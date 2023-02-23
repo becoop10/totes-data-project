@@ -20,7 +20,7 @@ host = ''
 username = ''
 password = ''
 database = ''
-port = 1234123123123123123123123123123
+port = 5432
 
 conn = psycopg2.connect(
     host = host,

@@ -1,4 +1,4 @@
-from src.query_totesys_db import (write_to_s3, read_from_s3, read_db, format_data,retrieve_timestamp, write_timestamp, lambda_handler)
+from src.ingest_data import (write_to_s3, read_db, format_data,retrieve_timestamp, write_timestamp, lambda_handler)
 import boto3
 import botocore
 from moto import mock_s3
@@ -92,25 +92,25 @@ def test_write_to_s3_overwrites_existing_file(s3):
     object_content = object_content['Body'].read().decode('ascii')
     assert object_content == data
 
-def test_read_from_s3_reads_data(s3):
-    bucket = 'totes-amazeballs-s3-ingested-data-bucket-12345'
-    s3.create_bucket(
-        Bucket=bucket,
-        CreateBucketConfiguration={'LocationConstraint': 'eu-east-2'}
-        )
-    data = 'Hello World'
-    write_to_s3(s3,'hello', data, bucket)
-    content = read_from_s3(s3, bucket, 'data/hello.json')
-    assert content == data
+# def test_read_from_s3_reads_data(s3):
+#     bucket = 'totes-amazeballs-s3-ingested-data-bucket-12345'
+#     s3.create_bucket(
+#         Bucket=bucket,
+#         CreateBucketConfiguration={'LocationConstraint': 'eu-east-2'}
+#         )
+#     data = 'Hello World'
+#     write_to_s3(s3,'hello', data, bucket)
+#     content = read_from_s3(s3, bucket, 'data/hello.json')
+#     assert content == data
 
-def test_read_from_s3_handles_no_such_key(s3):
-    bucket = 'totes-amazeballs-s3-ingested-data-bucket-12345'
-    s3.create_bucket(
-        Bucket=bucket,
-        CreateBucketConfiguration={'LocationConstraint': 'eu-east-2'}
-        )
-    content = read_from_s3(s3, bucket, 'helloWorld')
-    assert content == {}
+# def test_read_from_s3_handles_no_such_key(s3):
+#     bucket = 'totes-amazeballs-s3-ingested-data-bucket-12345'
+#     s3.create_bucket(
+#         Bucket=bucket,
+#         CreateBucketConfiguration={'LocationConstraint': 'eu-east-2'}
+#         )
+#     content = read_from_s3(s3, bucket, 'helloWorld')
+#     assert content == {}
 
 @freeze_time('2023-01-01')
 def test_write_timestamp_writes_to_env_variable():

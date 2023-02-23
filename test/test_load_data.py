@@ -1,4 +1,4 @@
-from src.warehouse_upload import (read_csv, read_parquet, write_to_db, query_builder, data_sorter)
+from src.load_data import (read_csv, read_parquets, write_to_db, query_builder, data_sorter)
 import pytest
 import pandas as pd
 from io import BytesIO
@@ -15,7 +15,7 @@ def test_read_parquet_reads_from_parquet_at_path():
     out_buffer = BytesIO()
     df.to_parquet(out_buffer, index=False)
     conn.put_object(Bucket=BUCKETNAME, Key='test_parquet', Body=out_buffer.getvalue())
-    result = read_parquet(conn, 'test_parquet', BUCKETNAME)
+    result = read_parquets(conn, 'test_parquet', BUCKETNAME)
 
     assert result == list
 
