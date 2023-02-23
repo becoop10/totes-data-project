@@ -117,10 +117,16 @@ def query_builder(r, filename):
     keys = list(r.keys())
     values = [r[k] for k in keys]
     update_strings = [f'{k} = EXCLUDED.{k}' for k in keys ]
+    fact_update_strings = [ f'{k} = {values[i]}' for i, k in enumerate(keys) ]
     full_update_string = ", ".join(update_strings)
+    full_fact_update_string = ", ".join(fact_update_strings)
     key_string = ", ".join(keys)
     var_in = (tuple(values),)
-    query = f'INSERT INTO {filename} ({key_string}) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
+    if 'dim' in filename:
+        query = f'INSERT INTO {filename} ({key_string}) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
+    else:
+
+        query = f'IF {id_columns[filename]} IN (select {id_columns[filename]} FROM table) UPDATE table SET key = value ,....; ELSE INSERT INTO table (serialid,key_strings) VALUES %s'
     return query, var_in
 
 def data_sorter(data, filename):
