@@ -3,6 +3,7 @@ import logging
 import json
 import pandas as pd 
 from io import BytesIO
+import math
 logger = logging.getLogger('DBTransformationLogger')
 logger.setLevel(logging.INFO)
 
@@ -40,8 +41,6 @@ def get_file_contents(bucket_name, file_name):
 def write_file_to_processed_bucket(bucket_name, key, list):
     s3 = boto3.client('s3')
     pandadataframe = pd.DataFrame(list)
-    if 'dim_transaction' in key:
-        pandadataframe = pandadataframe.replace(np.nan, None)
     out_buffer = BytesIO()
     pandadataframe.to_parquet(out_buffer, index=False)
     s3.put_object(Bucket=bucket_name, Key=key, Body=out_buffer.getvalue())
@@ -285,6 +284,10 @@ def format_payment_type(raw_data):
 
 def format_transaction(raw_data):
     formatted_data=remove_keys(raw_data)
+    for dictionary in formatted_data:
+        for key in list(dictionary.keys()):
+            if math.isnan(dictionary[key]):
+                dictionary[key] = None
     return formatted_data
 
 
