@@ -117,15 +117,16 @@ def query_builder(r, filename):
     keys = list(r.keys())
     values = [r[k] for k in keys]
     update_strings = [f'{k} = EXCLUDED.{k}' for k in keys ]
-    #fact_update_strings = [ f'{k} = %s' for i, k in enumerate(keys) ]
+    fact_update_strings = [ f'{k} = %s' for i, k in enumerate(keys) ]
     full_update_string = ", ".join(update_strings)
-    #full_fact_update_string = ", ".join(fact_update_strings)
+    full_fact_update_string = ", ".join(fact_update_strings)
     key_string = ", ".join(keys)
-    var_in = (tuple(values), )
     if 'dim' in filename:
+        var_in = (tuple(values), )
         query = f'INSERT INTO {filename} ({key_string}) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
     else:
-        var_in = (tuple(values), ) + tuple(values)
+        values.append(tuple(values))
+        var_in = tuple(values)
         id_v = values[keys.index(id_columns[filename])]
         # query = f'INSERT INTO {filename} ({key_string}) VALUES %s WHERE {id_v} NOT IN (select {id_columns[filename]} FROM {filename});\
         #           UPDATE {filename} SET {full_fact_update_string} WHERE {id_v} IN (select {id_columns[filename]} FROM {filename});'
@@ -133,7 +134,7 @@ def query_builder(r, filename):
         query = f'DO \' declare comparrison INT:={id_v}; \
                 BEGIN \
                 IF comparrison IN (select {id_columns[filename]} FROM {filename}) THEN \
-                UPDATE {filename} SET {full_update_string} WHERE {id_columns[filename]}={id_v}; \
+                UPDATE {filename} SET {full_fact_update_string} WHERE {id_columns[filename]}={id_v}; \
                 ELSE \
                 INSERT INTO {filename} \
                 ({key_string}) VALUES %s; \
