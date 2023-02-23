@@ -102,15 +102,14 @@ def write_to_db(conn, query, var_in):
 
 id_columns = {
     'dim_staff' : 'staff_id',
-    'dim_date' : 'date_id',
-    'fact_sales_order' : 'sales_record_id',
+    'fact_purchase_order' : 'purchase_order_id'
+    'fact_sales_order' : 'sales_order_id',
     'dim_counterparty' : 'counterparty_id',
     'dim_currency' : 'currency_id',
     'dim_design' : 'design_id',
     'dim_location' : 'location_id',
-    'fact_sales_order' : 'sales_record_id',
     'dim_payment_type' : 'payment_type_id',
-    'fact_payment' : 'payment_record_id',
+    'fact_payment' : 'payment_id',
     'dim_transaction' : 'transaction_id'
 }
 
