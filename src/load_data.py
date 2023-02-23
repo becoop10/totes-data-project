@@ -145,7 +145,7 @@ def lambda_handler(event, context):
 
     for f in updated_files:
         filename = f.split('/')[1]
-        file_list = get_file_names(bucket, f'data/{filename}/')
+        file_list = sorted(get_file_names(bucket, f'data/{filename}/'))
         for file in file_list:
             if file == f'{f}':
                 data = read_parquets(s3, file, bucket)
