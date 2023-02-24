@@ -194,7 +194,7 @@ def lambda_handler(event, context):
 
                         response = 0
                         if response == 0:
-                            sorted_data.to_csv('./tmp/data.csv', index=False)
+                            sorted_data.to_csv('/tmp/data.csv', index=False)
                             # df = pd.read_parquet('2023-02-24 11_05_10.066000.parquet', engine='fastparquet')
                             # cols = ['transaction_id', 'transaction_type', 'sales_order_id', 'purchase_order_id']
                             # df = df.reindex(columns=cols)
@@ -205,7 +205,7 @@ def lambda_handler(event, context):
                             conn = build_connection()
                             cur = conn.cursor()
                             query = f'COPY {filename} FROM STDIN DELIMITER '','' CSV HEADER'
-                            csv_file_name = './tmp/data.csv'
+                            csv_file_name = '/tmp/data.csv'
                             cur.copy_expert(query, open(csv_file_name, "r"))
                             conn.commit()
                             conn.close()
