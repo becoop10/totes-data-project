@@ -204,7 +204,7 @@ def lambda_handler(event, context):
                             # df.to_csv('file_name.csv', index=False)
                             conn = build_connection()
                             cur = conn.cursor()
-                            query = f'COPY {filename} FROM STDIN DELIMITER '','' CSV HEADER'
+                            query = f'COPY {filename} FROM STDIN DELIMITER \',\' CSV HEADER'
                             csv_file_name = '/tmp/data.csv'
                             cur.copy_expert(query, open(csv_file_name, "r"))
                             conn.commit()
