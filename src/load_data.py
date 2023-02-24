@@ -7,6 +7,7 @@ import json
 import logging
 logger = logging.getLogger('WarehouseUploaderLogger')
 logger.setLevel(logging.INFO)
+from sqlalchemy import create_engine
 
 def get_secret():
 
@@ -167,6 +168,14 @@ def lambda_handler(event, context):
 
     lam=boto3.client('lambda')
 
+    db = get_secret()
+    host = db['host']
+    username = db['username']
+    password = db['password']
+    database = db['dbname']
+    port = db['port']
+    engine = create_engine(f'postgresql+psycopg2://{username}:{password}@{host}/{database}')
+
     result=lam.get_function_configuration(
     FunctionName='load-data'
     )
@@ -187,14 +196,15 @@ def lambda_handler(event, context):
                         data = read_parquets(s3, file, bucket)
                         sorted_data = data_sorter(data, filename)
                         if response == 0:
-                            out_buffer = BytesIO()
-                            sorted_data.to_csv(out_buffer, index=False)
-                            with conn.cursor() as cur:
-                                try:
-                                    cur.copy_from(out_buffer, filename)
-                                except Exception as e:
-                                    logger.error(e)
-                                    raise Exception
+                            sorted_data.to_sql(f'{filename}', engine, if_exists='append')
+                            # out_buffer = BytesIO()
+                            # sorted_data.to_csv(out_buffer, index=False)
+                            # with conn.cursor() as cur:
+                            #     try:
+                            #         cur.copy_from(out_buffer, filename)
+                            #     except Exception as e:
+                            #         logger.error(e)
+                            #         raise Exception
                         else:
                             for r in sorted_data.to_dict('records'):      
                                 query, var_in = query_builder(r, filename)
