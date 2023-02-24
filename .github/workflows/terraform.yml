@@ -16,7 +16,7 @@ env:
 on:
   push:
     branches:
-      - sandbox-test-2
+      - sandbox-test-4
     
   workflow_dispatch:
     inputs:
@@ -40,8 +40,8 @@ jobs:
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-access-key-id: AKIAXOXYDT74HBDSTLH6 #${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: 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 #${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
       - name: Terraform Format

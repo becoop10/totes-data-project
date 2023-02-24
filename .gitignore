@@ -6,9 +6,13 @@ df.parquet.gzip
 function/package/
 .terraform
 .terraform*
+<<<<<<< HEAD
 package
 .gitignore
 *old*
 requirements.txt
 *test*
 .zip
+=======
+
+>>>>>>> sandbox-test-4
