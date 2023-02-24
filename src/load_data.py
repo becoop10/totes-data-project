@@ -114,7 +114,7 @@ id_columns = {
     'fact_payment' : 'payment_id'
 }
 
-def query_builder(r, filename):
+def query_builder(r, filename, invocations):
     keys = list(r.keys())
     values = [r[k] for k in keys]
     update_strings = [f'{k} = EXCLUDED.{k}' for k in keys ]
@@ -123,7 +123,12 @@ def query_builder(r, filename):
     full_fact_update_string = ", ".join(fact_update_strings)
     key_string = ", ".join(keys)
 
-    if 'dim' in filename:
+    if invocations == 0:
+        var_in = (tuple(values), )
+        query = f'INSERT INTO {filename} ({key_string}) VALUES %s;'
+
+
+    elif 'dim' in filename:
         var_in = (tuple(values), )
         query = f'INSERT INTO {filename} ({key_string}) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
     else:
@@ -189,21 +194,9 @@ def lambda_handler(event, context):
                         sorted_data = sorted_data.to_dict('records')
 
                         response = 0
-                        if response == 0:
-                            with conn.cursor() as cur:
-                                try:
-                                    keys = list(sorted_data[0].keys())
-                                    key_string = ", ".join(keys)
-                                    cur.copy(f'COPY {filename} ({key_string}) FROM STDIN') as copy:
-                                        for data in sorted_data:
-                                            copy.write_row(data)
-                                except Exception as e:
-                                    logger.error(e)
-                                    raise Exception
-                        else:
-                            for r in sorted_data:      
-                                query, var_in = query_builder(r, filename)
-                                write_to_db(conn, query, var_in)
+                        for r in sorted_data:      
+                            query, var_in = query_builder(r, filename, response)
+                            write_to_db(conn, query, var_in)
 
                         logger.info(f'{f} uploaded to warehouse.')
     response+=1
