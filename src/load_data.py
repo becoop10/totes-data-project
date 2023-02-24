@@ -191,9 +191,27 @@ def lambda_handler(event, context):
                     if file == f'{f}':
                         data = read_parquets(s3, file, bucket)
                         sorted_data = data_sorter(data, filename)
-                        sorted_data = sorted_data.to_dict('records')
 
                         response = 0
+                        if response == 0:
+                            sorted_data.to_csv('./tmp/data.csv', index=False)
+                            # df = pd.read_parquet('2023-02-24 11_05_10.066000.parquet', engine='fastparquet')
+                            # cols = ['transaction_id', 'transaction_type', 'sales_order_id', 'purchase_order_id']
+                            # df = df.reindex(columns=cols)
+                            # df['sales_order_id'] = df['sales_order_id'].astype('Int64')
+                            # df['purchase_order_id'] = df['purchase_order_id'].astype('Int64')
+                            # df['sales_order_id'].replace('', pd.np.nan, inplace = True)
+                            # df.to_csv('file_name.csv', index=False)
+                            conn = build_connection()
+                            cur = conn.cursor()
+                            query = f'COPY {filename} FROM STDIN DELIMITER '','' CSV HEADER'
+                            csv_file_name = './tmp/data.csv'
+                            cur.copy_expert(query, open(csv_file_name, "r"))
+                            conn.commit()
+                            conn.close()
+
+                        sorted_data = sorted_data.to_dict('records')
+
                         for r in sorted_data:      
                             query, var_in = query_builder(r, filename, response)
                             write_to_db(conn, query, var_in)
