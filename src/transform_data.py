@@ -83,12 +83,11 @@ def lambda_handler(event, context):
                     logger.info(f'{tablekey} parquet updated')
                     if filestring not in updatedfiles:
                         updatedfiles.append(filestring)
-                        df=pd.DataFrame(updatedfiles[-1],columns=["File names"])
-                        out_buffer=BytesIO()
-                        df.to_csv(out_buffer,index=False)
-                        s3.put_object(Body=out_buffer.getvalue(), Bucket=processed_bucket, Key="updatedfiles.csv")
-
                 except Exception as e:
                     logger.error(e)
     
+    df=pd.DataFrame(updatedfiles,columns=["File names"])
+    out_buffer=BytesIO()
+    df.to_csv(out_buffer,index=False)
     
+    s3.put_object(Body=out_buffer.getvalue(), Bucket=processed_bucket, Key="updatedfiles.csv")
