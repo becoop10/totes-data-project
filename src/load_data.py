@@ -203,18 +203,16 @@ def lambda_handler(event, context):
                             # df['sales_order_id'].replace('', pd.np.nan, inplace = True)
                             # df.to_csv('file_name.csv', index=False)
                             conn = build_connection()
-                            cur = conn.cursor()
-                            query = f'COPY {filename} FROM STDIN DELIMITER \',\' CSV HEADER'
-                            csv_file_name = '/tmp/data.csv'
-                            cur.copy_expert(query, open(csv_file_name, "r"))
-                            conn.commit()
-                            conn.close()
-
-                        sorted_data = sorted_data.to_dict('records')
-
-                        for r in sorted_data:      
-                            query, var_in = query_builder(r, filename, response)
-                            write_to_db(conn, query, var_in)
+                            with conn.cursor() as cur:
+                                query = f'COPY {filename} FROM STDIN DELIMITER \',\' CSV HEADER'
+                                csv_file_name = '/tmp/data.csv'
+                                cur.copy_expert(query, open(csv_file_name, "r"))
+                                conn.commit()
+                        else:
+                            sorted_data = sorted_data.to_dict('records')
+                            for r in sorted_data:      
+                                query, var_in = query_builder(r, filename, response)
+                                write_to_db(conn, query, var_in)
 
                         logger.info(f'{f} uploaded to warehouse.')
     response+=1
