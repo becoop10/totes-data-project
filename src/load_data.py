@@ -114,7 +114,7 @@ id_columns = {
     'fact_payment' : 'payment_id'
 }
 
-def query_builder(r, filename):
+def query_builder(r, filename, invocations):
     keys = list(r.keys())
     values = [r[k] for k in keys]
     update_strings = [f'{k} = EXCLUDED.{k}' for k in keys ]
@@ -122,6 +122,10 @@ def query_builder(r, filename):
     full_update_string = ", ".join(update_strings)
     full_fact_update_string = ", ".join(fact_update_strings)
     key_string = ", ".join(keys)
+
+    if invocations == 0:
+        var_in=(tuple(values),)
+        query = f'INSERT INTO {filename} ({key_string}) VALUES %s;'
 
     if 'dim' in filename:
         var_in = (tuple(values), )
@@ -175,6 +179,7 @@ def lambda_handler(event, context):
         logger.info(response)
     except:
         response=0
+        logger.info(response)
     response=int(response)
 
     for key in list(id_columns.keys()):
@@ -186,19 +191,9 @@ def lambda_handler(event, context):
                     if file == f'{f}':
                         data = read_parquets(s3, file, bucket)
                         sorted_data = data_sorter(data, filename)
-                        if response == 0:
-                            out_buffer = StringIO()
-                            sorted_data.to_csv(out_buffer, index=False)
-                            with conn.cursor() as cur:
-                                try:
-                                    cur.copy_from(out_buffer, filename, sep=',')
-                                except Exception as e:
-                                    logger.error(e)
-                                    raise Exception
-                        else:
-                            for r in sorted_data.to_dict('records'):      
-                                query, var_in = query_builder(r, filename)
-                                write_to_db(conn, query, var_in)
+                        for r in sorted_data.to_dict('records'):      
+                            query, var_in = query_builder(r, filename, response)
+                            write_to_db(conn, query, var_in)
 
                         logger.info(f'{f} uploaded to warehouse.')
     response+=1
