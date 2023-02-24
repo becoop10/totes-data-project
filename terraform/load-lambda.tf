@@ -35,6 +35,13 @@ data "aws_iam_policy_document" "s3_load_document" {
             "arn:aws:s3:::*"
         ]
     }
+    statement {
+        actions = ["lambda:GetFunctionConfiguration","lambda:GetFunction","lambda:InvokeFunction","lambda:InvokeFunctionConfiguration", "lambda:UpdateFunctionConfiguration"]
+
+        resources = [
+            "*"
+        ]
+    }
 }
 
 data "aws_iam_policy_document" "cw_load_document" {
@@ -109,11 +116,11 @@ resource "aws_lambda_permission" "load_allow_s3" {
 
 
 resource "aws_lambda_function" "load_lambda" {
-    filename = "../src/load_deployment1.zip" # Put filepath to load zip here
+    filename = "../src/load_deployment.zip" # Put filepath to load zip here
     function_name = "${var.load_lambda_name}"
     role = aws_iam_role.load_lambda_role.arn
     handler = "load_data.lambda_handler" # Put lambda handler here
     runtime = "python3.9"
     layers = ["arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p39-pandas:11",] # May need to change layer?
-    timeout = "300"
+    timeout = "120"
 }
