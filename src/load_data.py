@@ -182,39 +182,43 @@ def lambda_handler(event, context):
         response=0
     response=int(response)
 
-    for key in list(id_columns.keys()):
-        for f in updated_files:
-            if key in f:
-                filename = f.split('/')[1]
-                file_list = sorted(get_file_names(bucket, f'data/{filename}/'))
-                for file in file_list:
-                    if file == f'{f}':
-                        data = read_parquets(s3, file, bucket)
-                        sorted_data = data_sorter(data, filename)
+    with conn.cursor() as cur:
+        for key in list(id_columns.keys()):
+            for f in updated_files:
+                if key in f:
+                    filename = f.split('/')[1]
+                    file_list = sorted(get_file_names(bucket, f'data/{filename}/'))
+                    for file in file_list:
+                        if file == f'{f}':
+                            data = read_parquets(s3, file, bucket)
+                            sorted_data = data_sorter(data, filename)
 
-                        response = 0
-                        if response == 0:
-                            sorted_data.to_csv('/tmp/data.csv', index=False)
-                            # df = pd.read_parquet('2023-02-24 11_05_10.066000.parquet', engine='fastparquet')
-                            # cols = ['transaction_id', 'transaction_type', 'sales_order_id', 'purchase_order_id']
-                            # df = df.reindex(columns=cols)
-                            # df['sales_order_id'] = df['sales_order_id'].astype('Int64')
-                            # df['purchase_order_id'] = df['purchase_order_id'].astype('Int64')
-                            # df['sales_order_id'].replace('', pd.np.nan, inplace = True)
-                            # df.to_csv('file_name.csv', index=False)
-                            conn = build_connection()
-                            with conn.cursor() as cur:
-                                query = f'COPY {filename} FROM STDIN DELIMITER \',\' CSV HEADER'
-                                csv_file_name = '/tmp/data.csv'
-                                cur.copy_expert(query, open(csv_file_name, "r"))
-                                conn.commit()
-                        else:
-                            sorted_data = sorted_data.to_dict('records')
-                            for r in sorted_data:      
-                                query, var_in = query_builder(r, filename, response)
-                                write_to_db(conn, query, var_in)
+                            response = 1
+                            if response == 0:
+                                sorted_data.to_csv('/tmp/data.csv', index=False)
+                                # df = pd.read_parquet('2023-02-24 11_05_10.066000.parquet', engine='fastparquet')
+                                # cols = ['transaction_id', 'transaction_type', 'sales_order_id', 'purchase_order_id']
+                                # df = df.reindex(columns=cols)
+                                # df['sales_order_id'] = df['sales_order_id'].astype('Int64')
+                                # df['purchase_order_id'] = df['purchase_order_id'].astype('Int64')
+                                # df['sales_order_id'].replace('', pd.np.nan, inplace = True)
+                                # df.to_csv('file_name.csv', index=False)
+                                conn = build_connection()
+                                with conn.cursor() as cur:
+                                    query = f'COPY {filename} FROM STDIN DELIMITER \',\' CSV HEADER'
+                                    csv_file_name = '/tmp/data.csv'
+                                    cur.copy_expert(query, open(csv_file_name, "r"))
+                                    conn.commit()
+                            else:
+                                sorted_data = sorted_data.to_dict('records')
+                                for r in sorted_data:      
+                                    query, var_in = query_builder(r, filename, response)
+                                    cur.execute(query, var_in)
 
-                        logger.info(f'{f} uploaded to warehouse.')
+                            logger.info(f'{f} uploaded to warehouse.')
+
+        conn.commit()
+        cur.close()    
     response+=1
 
     lam.update_function_configuration(
