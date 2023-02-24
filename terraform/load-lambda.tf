@@ -124,5 +124,5 @@ resource "aws_lambda_function" "load_lambda" {
     layers = [
         "arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p39-pandas:11"
         ]
-    timeout = "600"
+    timeout = "900"
 }
