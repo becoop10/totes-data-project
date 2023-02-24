@@ -172,6 +172,7 @@ def lambda_handler(event, context):
     )
     try:
         response=result['Environment']['Variables']['Invocations']
+        logger.info(response)
     except:
         response=0
     response=int(response)
@@ -196,7 +197,7 @@ def lambda_handler(event, context):
                                     raise Exception
                         else:
                             for r in sorted_data.to_dict('records'):      
-                                query, var_in = query_builder(r, filename,response)
+                                query, var_in = query_builder(r, filename)
                                 write_to_db(conn, query, var_in)
 
                         logger.info(f'{f} uploaded to warehouse.')
