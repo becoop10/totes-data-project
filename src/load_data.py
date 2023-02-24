@@ -1,12 +1,13 @@
 import psycopg2
 import boto3
 import pandas as pd
-from io import BytesIO , StringIO
+from io import BytesIO
 from botocore.exceptions import ClientError
 import json
 import logging
 logger = logging.getLogger('WarehouseUploaderLogger')
 logger.setLevel(logging.INFO)
+from sqlalchemy import create_engine
 
 def get_secret():
 
@@ -114,7 +115,7 @@ id_columns = {
     'fact_payment' : 'payment_id'
 }
 
-def query_builder(r, filename, invocations):
+def query_builder(r, filename):
     keys = list(r.keys())
     values = [r[k] for k in keys]
     update_strings = [f'{k} = EXCLUDED.{k}' for k in keys ]
@@ -123,12 +124,7 @@ def query_builder(r, filename, invocations):
     full_fact_update_string = ", ".join(fact_update_strings)
     key_string = ", ".join(keys)
 
-    if invocations == 0:
-        var_in = (tuple(values), )
-        query = f'INSERT INTO {filename} ({key_string}) VALUES %s;'
-
-
-    elif 'dim' in filename:
+    if 'dim' in filename:
         var_in = (tuple(values), )
         query = f'INSERT INTO {filename} ({key_string}) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
     else:
@@ -172,6 +168,14 @@ def lambda_handler(event, context):
 
     lam=boto3.client('lambda')
 
+    db = get_secret()
+    host = db['host']
+    username = db['username']
+    password = db['password']
+    database = db['dbname']
+    port = db['port']
+    engine = create_engine(f'postgresql+psycopg2://{username}:{password}@{host}/{database}')
+
     result=lam.get_function_configuration(
     FunctionName='load-data'
     )
@@ -191,12 +195,21 @@ def lambda_handler(event, context):
                     if file == f'{f}':
                         data = read_parquets(s3, file, bucket)
                         sorted_data = data_sorter(data, filename)
-                        sorted_data = sorted_data.to_dict('records')
-
                         response = 0
-                        for r in sorted_data:      
-                            query, var_in = query_builder(r, filename, response)
-                            write_to_db(conn, query, var_in)
+                        if response == 0:
+                            sorted_data.to_sql(f'{filename}', engine, if_exists='append')
+                            # out_buffer = BytesIO()
+                            # sorted_data.to_csv(out_buffer, index=False)
+                            # with conn.cursor() as cur:
+                            #     try:
+                            #         cur.copy_from(out_buffer, filename)
+                            #     except Exception as e:
+                            #         logger.error(e)
+                            #         raise Exception
+                        else:
+                            for r in sorted_data.to_dict('records'):      
+                                query, var_in = query_builder(r, filename)
+                                write_to_db(conn, query, var_in)
 
                         logger.info(f'{f} uploaded to warehouse.')
     response+=1
