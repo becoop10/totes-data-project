@@ -190,9 +190,10 @@ def lambda_handler(event, context):
                             sorted_data.to_csv(out_buffer, index=False)
                             with conn.cursor() as cur:
                                 try:
-                                    curr.copy_from(out_buffer, filename)
+                                    cur.copy_from(out_buffer, filename)
                                 except Exception as e:
                                     logger.error(e)
+                                    raise Exception
                         else:
                             for r in sorted_data.to_dict('records'):      
                                 query, var_in = query_builder(r, filename,response)
