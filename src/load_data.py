@@ -114,7 +114,7 @@ id_columns = {
     'fact_payment' : 'payment_id'
 }
 
-def query_builder(r, filename):
+def query_builder(r, filename,invocations):
     keys = list(r.keys())
     values = [r[k] for k in keys]
     update_strings = [f'{k} = EXCLUDED.{k}' for k in keys ]
@@ -122,7 +122,13 @@ def query_builder(r, filename):
     full_update_string = ", ".join(update_strings)
     full_fact_update_string = ", ".join(fact_update_strings)
     key_string = ", ".join(keys)
-    if 'dim' in filename:
+
+    if invocations == 0:
+        var_in=(tuple(values),)
+        query = f'INSERT INTO {filename} ({key_string}) VALUES %s;'
+
+
+    elif 'dim' in filename:
         var_in = (tuple(values), )
         query = f'INSERT INTO {filename} ({key_string}) VALUES %s ON CONFLICT ({id_columns[filename]}) DO UPDATE SET {full_update_string};'
     else:
@@ -164,6 +170,24 @@ def lambda_handler(event, context):
     bucket = get_bucket_names()[1]
     updated_files = read_csv(s3, csv_key, bucket)
 
+    lam=boto3.client('lambda')
+
+    result=lam.get_function_configuration(
+    FunctionName='load-data'
+    )
+    try:
+        response=result['Environment']['Variables']['Invocations']
+    except:
+        response=0
+    response=int(response)
+
+
+
+
+
+
+
+
     for key in list(id_columns.keys()):
         for f in updated_files:
             if key in f:
@@ -174,9 +198,19 @@ def lambda_handler(event, context):
                         data = read_parquets(s3, file, bucket)
                         sorted_data = data_sorter(data, filename)
                         for r in sorted_data:      
-                            query, var_in = query_builder(r, filename)
+                            query, var_in = query_builder(r, filename,response)
                             write_to_db(conn, query, var_in)
                         logger.info(f'{f} uploaded to warehouse.')
+    response+=1
+
+    lam.update_function_configuration(
+        FunctionName='load-data',
+        Environment={
+            'Variables':{
+                'Invocations':f'{response}'
+            }
+        }
+    )
 
 
 '''

@@ -35,6 +35,13 @@ data "aws_iam_policy_document" "s3_load_document" {
             "arn:aws:s3:::*"
         ]
     }
+    statement {
+        actions = ["lambda:GetFunctionConfiguration","lambda:GetFunction","lambda:InvokeFunction","lambda:InvokeFunctionConfiguration", "lambda:UpdateFunctionConfiguration"]
+
+        resources = [
+            "*"
+        ]
+    }
 }
 
 data "aws_iam_policy_document" "cw_load_document" {
