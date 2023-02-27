@@ -235,7 +235,7 @@ def lambda_handler(event, context):
                                 # df['purchase_order_id'] = df['purchase_order_id'].astype('Int64')
                                 # df['sales_order_id'].replace('', pd.np.nan, inplace = True)
                                 # df.to_csv('file_name.csv', index=False)
-                                cur.execute(f"DELETE FROM {filename}")
+                                cur.execute(f"TRUNCATE {filename} RESTART identity;")
                                 cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (filename,))
                                 headers=cur.fetchall()
                                 headers=[header[0] for header in headers]
