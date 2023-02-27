@@ -13,6 +13,21 @@ import pyarrow
 
 
 def lambda_handler(event, context):
+    '''
+    Reads data from the ingested bucket and formats into
+    the star schema for data warehouse, then writes
+    to the processed s3 bucket as parquet files.
+    Writes updatedfiles.csv to trigger load lambda.
+
+    Args:
+        event:
+            Runs on write of timestamp.txt
+        context:
+            a valid AWS lambda Python context object
+    Raises:
+        Errors result in an informative log message.
+  
+    '''
     s3=boto3.client('s3')
     
     try:
@@ -83,8 +98,8 @@ def lambda_handler(event, context):
                     logger.info(f'{tablekey} parquet updated')
                     if filestring not in updatedfiles:
                         updatedfiles.append(filestring)
-                except:
-                    logger.warning("Unknown Error Occurred")
+                except Exception as e:
+                    logger.error(e)
     
     df=pd.DataFrame(updatedfiles,columns=["File names"])
     out_buffer=BytesIO()
