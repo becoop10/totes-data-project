@@ -241,7 +241,7 @@ def lambda_handler(event, context):
                                     cur.execute(f"ALTER TABLE {filename} ALTER COLUMN sales_record_id RESTART WITH 1;")
                                 if filename == 'fact_purchase_order':
                                     cur.execute(f"ALTER TABLE {filename} ALTER COLUMN purchase_record_id RESTART WITH 1;")
-                                if filename'fact_payment':
+                                if filename == 'fact_payment':
                                     cur.execute(f"ALTER TABLE {filename} ALTER COLUMN payment_record_id RESTART WITH 1;")
                                     
                                 cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (filename,))
