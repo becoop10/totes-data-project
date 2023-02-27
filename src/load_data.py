@@ -242,6 +242,7 @@ def lambda_handler(event, context):
                                 headers=cur.fetchall()
                                 headers=[header[0] for header in headers]
                                 sorted_data = sorted_data.reindex(columns=headers)
+                                logger.info(headers)
                                 query = f'COPY {filename} FROM STDIN DELIMITER \',\' CSV HEADER'
                                 csv_file_name = '/tmp/data.csv'
                                 cur.copy_expert(query, open(csv_file_name, "r"))
