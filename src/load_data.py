@@ -226,7 +226,7 @@ def lambda_handler(event, context):
                         if file == f'{f}':
                             data = read_parquets(s3, file, bucket)
                             sorted_data = data_sorter(data, filename)
-
+                            response = 0
                             if response == 0:
                                 # df = pd.read_parquet('2023-02-24 11_05_10.066000.parquet', engine='fastparquet')
                                 # cols = ['transaction_id', 'transaction_type', 'sales_order_id', 'purchase_order_id']
@@ -235,7 +235,15 @@ def lambda_handler(event, context):
                                 # df['purchase_order_id'] = df['purchase_order_id'].astype('Int64')
                                 # df['sales_order_id'].replace('', pd.np.nan, inplace = True)
                                 # df.to_csv('file_name.csv', index=False)
-                                cur.execute(f"TRUNCATE {filename} RESTART identity;")
+                                cur.execute(f"DELETE FROM {filename};")
+
+                                if filename == 'fact_sales_order':
+                                    cur.execute(f"ALTER TABLE {filename} ALTER COLUMN sales_record_id RESTART WITH 1;")
+                                if filename == 'fact_purchase_order':
+                                    cur.execute(f"ALTER TABLE {filename} ALTER COLUMN purchase_record_id RESTART WITH 1;")
+                                if filename'fact_payment':
+                                    cur.execute(f"ALTER TABLE {filename} ALTER COLUMN payment_record_id RESTART WITH 1;")
+                                    
                                 cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (filename,))
                                 headers=cur.fetchall()
                                 headers=[header[0] for header in headers]
