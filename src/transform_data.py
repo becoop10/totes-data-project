@@ -13,6 +13,21 @@ import pyarrow
 
 
 def lambda_handler(event, context):
+    '''
+    Reads data from the ingested bucket and formats into
+    the star schema for data warehouse, then writes
+    to the processed s3 bucket as parquet files.
+    Writes updatedfiles.csv to trigger load lambda.
+
+    Args:
+        event:
+            Runs on write of timestamp.txt
+        context:
+            a valid AWS lambda Python context object
+    Raises:
+        Errors result in an informative log message.
+  
+    '''
     s3=boto3.client('s3')
     
     try:
