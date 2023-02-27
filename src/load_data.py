@@ -237,16 +237,15 @@ def lambda_handler(event, context):
                                 # df['purchase_order_id'] = df['purchase_order_id'].astype('Int64')
                                 # df['sales_order_id'].replace('', pd.np.nan, inplace = True)
                                 # df.to_csv('file_name.csv', index=False)
-                                conn = build_connection()
-                                with conn.cursor() as cur:
-                                    cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (filename,))
-                                    headers=cur.fetchall()
-                                    headers=[header[0] for header in headers]
-                                    sorted_data = sorted_data.reindex(columns=headers)
-                                    query = f'COPY {filename} FROM STDIN DELIMITER \',\' CSV HEADER'
-                                    csv_file_name = '/tmp/data.csv'
-                                    cur.copy_expert(query, open(csv_file_name, "r"))
-                                    conn.commit()
+                                cur.execute(f"DELETE FROM {filename}")
+                                cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (filename,))
+                                headers=cur.fetchall()
+                                headers=[header[0] for header in headers]
+                                sorted_data = sorted_data.reindex(columns=headers)
+                                query = f'COPY {filename} FROM STDIN DELIMITER \',\' CSV HEADER'
+                                csv_file_name = '/tmp/data.csv'
+                                cur.copy_expert(query, open(csv_file_name, "r"))
+                                conn.commit()
                             else:
                                 sorted_data = sorted_data.to_dict('records')
                                 for r in sorted_data:      
