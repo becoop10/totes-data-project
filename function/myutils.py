@@ -3,6 +3,7 @@ import logging
 import json
 import pandas as pd 
 from io import BytesIO
+import math
 logger = logging.getLogger('DBTransformationLogger')
 logger.setLevel(logging.INFO)
 
