@@ -7,8 +7,8 @@ from botocore.exceptions import ClientError
 import json
 
 def get_secret():
-
-    secret_name = "tote-warehouse"
+    '''Retrieves data-warehouse db connection details from aws secrets manager'''
+    secret_name = "data-warehouse"
     region_name = "us-east-1"
 
     # Create a Secrets Manager client
@@ -48,6 +48,7 @@ months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'Augus
 days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
 
 def write_to_db(query, var_in):
+    '''Writes a sql query to the warehouse db'''
     with conn.cursor() as cur:
         try:
             cur.execute(query, var_in)
@@ -59,6 +60,7 @@ def write_to_db(query, var_in):
             raise Exception()
 
 def write_table():
+    '''Populates the dim_date table with the relavant values'''
     write_to_db('DELETE FROM dim_date;', ('',))
     for d in pd.date_range(start='11/03/2022', end='11/03/2024'):
         query = 'INSERT INTO dim_date (date_id, year, month, day, day_of_week, day_name, month_name, quarter) VALUES (%s, %s, %s, %s, %s, %s, %s, %s);'

@@ -5,7 +5,7 @@ import json
 import logging
 import pandas as pd
 from io import BytesIO
-
+from botocore.exceptions import ClientError
 logger = logging.getLogger('DBTransformationLogger')
 logger.setLevel(logging.INFO)
 import pyarrow
@@ -39,7 +39,17 @@ def lambda_handler(event, context):
         logger.error("ERROR! No buckets found")
         raise Exception("NO BUCKETS TO RETRIEVE DATA")
 
-    timestamp=s3.get_object(Bucket=ingested_bucket,Key="data/timestamp.txt")['Body'].read().decode('utf-8')
+    try:
+        timestamp=s3.get_object(Bucket=ingested_bucket,Key="data/timestamp.txt")['Body'].read().decode('utf-8')
+    except s3.exceptions.NoSuchKey as e:
+        logger.error(f'Error: No object "timestamp.txt" in bucket "{ingested_bucket}"')
+        raise e
+    except ClientError as e:
+        logger.error('Error: could not connect to the aws client.')
+        raise e
+    except:
+        logger.error('Error: Could not read txt.')
+        raise Exception()
 
 
     file_list = get_file_names(ingested_bucket,f'data/{timestamp}/')
@@ -105,4 +115,11 @@ def lambda_handler(event, context):
     out_buffer=BytesIO()
     df.to_csv(out_buffer,index=False)
     
-    s3.put_object(Body=out_buffer.getvalue(), Bucket=processed_bucket, Key="updatedfiles.csv")
+
+    try:
+        s3.put_object(Body=out_buffer.getvalue(), Bucket=processed_bucket, Key="updatedfiles.csv")
+    except ClientError as e:
+        logger.error(e)
+    except:
+        logger.error("Unknown error writing to Updated Files")
+        raise Exception

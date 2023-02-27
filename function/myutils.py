@@ -7,11 +7,14 @@ import math
 logger = logging.getLogger('DBTransformationLogger')
 logger.setLevel(logging.INFO)
 
+'''Utility and helper functions which are called by the transform data lambda'''
+
 
 
 
 
 def get_bucket_names():
+    '''Obtains the full names of the processed and ingested buckets in s3 regardless of the randomised suffix'''
     s3 = boto3.resource('s3')
     for bucket in s3.buckets.all():
         if "ingested" in bucket.name:
@@ -22,6 +25,7 @@ def get_bucket_names():
 
 
 def get_file_names(bucket_name,prefix):
+    '''Obtains the names of all the files stored in the relevant s3 bucket'''
     s3 = boto3.client('s3')
     response = s3.list_objects(Bucket=bucket_name,Prefix=prefix)
     try:
@@ -32,6 +36,7 @@ def get_file_names(bucket_name,prefix):
 
 
 def get_file_contents(bucket_name, file_name):
+    '''Obtains the contents of the given file in the relevant bucket'''
     s3 = boto3.client('s3')
     response = s3.get_object(Bucket=bucket_name, Key=file_name)
     jsonfile = json.loads(response['Body'].read())
@@ -39,13 +44,19 @@ def get_file_contents(bucket_name, file_name):
 
 
 def write_file_to_processed_bucket(bucket_name, key, list):
+    '''Converts the formatted data into a parquet file, and then writes the file to a given s3 bucket'''
     s3 = boto3.client('s3')
     pandadataframe = pd.DataFrame(list)
     out_buffer = BytesIO()
     pandadataframe.to_parquet(out_buffer, index=False)
     s3.put_object(Bucket=bucket_name, Key=key, Body=out_buffer.getvalue())
 
+'''The following functions format ingested data from the totesys database, into the    
+pattern needed for the relevant table in the new star schema. Each function is 
+named for the table they will load into'''
+
 def format_counterparty(raw_counter, raw_address):
+
     formattedList = []
     for counter in raw_counter:
         new_details = {}
@@ -353,16 +364,22 @@ def format_staff(unformatted_staff, unformatted_depts):
 
 
 def find_match(primarykey, secondarykey, target, search_list):
+    '''A helper function for the formatting functions, this function matches the target dictionary to 
+    the dictionary with the primary secondary match in the list given'''
     result = [match for match in search_list if match[secondarykey]
               == target[primarykey]][0]
     return result
 
 
 def remove_keys(list,remove=["created_at","last_updated"]):
+    '''Will remove the given keys (default created at and last updated) from a list of dictionaries, while not 
+    mutating'''
     return [{key:dictionary[key] for key in dictionary if key not in remove} for dictionary in list]
 
 
 def time_splitter(dictionary):
+        '''Splits the created and last updated keys into a time key and a date key, for use
+        in the star schema as dim and fact.'''
     
         new_details = {}
         for key in dictionary:

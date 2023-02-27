@@ -2,7 +2,8 @@ import psycopg2
 import boto3
 import pandas as pd
 from io import BytesIO , StringIO
-from botocore.exceptions import ClientError, NoSuchKey
+from botocore.exceptions import ClientError
+
 import json
 import logging
 logger = logging.getLogger('WarehouseUploaderLogger')
@@ -71,7 +72,7 @@ def read_csv(s3, path, bucket):
         file=pd.read_csv(BytesIO(response['Body'].read()))
         r = file.to_dict('records')
         return [k['File names'] for k in r]   
-    except NoSuchKey as e:
+    except s3.exceptions.NoSuchKey as e:
         logger.error(f'Error: No object "{path}" in bucket "{bucket}"')
         raise e
     except ClientError as e:
@@ -88,7 +89,7 @@ def read_parquets(s3, path, bucket):
     except ClientError as e:
         logger.error('Error: could not connect to the aws client.')
         raise e
-    except NoSuchKey as e:
+    except s3.exceptions.NoSuchKey as e:
         logger.error(f'Error: No object "{path}" in bucket "{bucket}"')
         raise e
     except:

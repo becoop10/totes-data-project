@@ -54,9 +54,9 @@ conn = psycopg2.connect(
  
 def get_file_contents(bucket_name, file_name):
     '''Returns body of s3 object'''
-        s3 = boto3.client('s3')
-        response = s3.get_object(Bucket=bucket_name, Key=file_name)
-        return response['Body'].read()
+    s3 = boto3.client('s3')
+    response = s3.get_object(Bucket=bucket_name, Key=file_name)
+    return response['Body'].read()
 
 def get_bucket_names():
     '''Returns list of ingested and processed bucket names regardless of randomised suffix'''
