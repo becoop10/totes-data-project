@@ -2,14 +2,14 @@ import psycopg2
 import boto3
 import pandas as pd
 from io import BytesIO
-from botocore.exceptions import ClientError
+from botocore.exceptions import ClientError, NoSuchKey
 import json
 import logging 
 logger = logging.getLogger('WarehouseUploaderLogger')
 logger.setLevel(logging.INFO)
 
 def get_secret():
-
+    '''Retrieves data-warehouse db connection details from aws secrets manager'''
     secret_name = "data-warehouse"
     region_name = "us-east-1"
 
@@ -32,6 +32,7 @@ def get_secret():
     return json.loads(secret)
 
 def build_connection():
+    '''Build connection to warehouse-db '''
     try:
         db = get_secret()
         host = db['host']
@@ -54,6 +55,7 @@ def build_connection():
 
 
 def get_bucket_names():
+    '''Returns list of ingested and processed bucket names regardless of randomised suffix'''
     s3 = boto3.resource('s3')
     for bucket in s3.buckets.all():
         if "ingested" in bucket.name:
@@ -63,31 +65,47 @@ def get_bucket_names():
     return [ingested_bucket, processed_bucket]
 
 def read_csv(s3, path, bucket):
+    '''Reads the contents of a csv object in an s3 bucket and returns as a list of dictionarys'''
     try:
         response = s3.get_object(Bucket=bucket,Key=path)
         file=pd.read_csv(BytesIO(response['Body'].read()))
         r = file.to_dict('records')
         return [k['File names'] for k in r]   
+    except NoSuchKey as e:
+        logger.error(f'Error: No object "{path}" in bucket "{bucket}"')
+        raise e
+    except ClientError as e:
+        logger.error('Error: could not connect to the aws client.')
+        raise e
     except:
-        logger.error('An error occured. Could not read csv.')
+        logger.error('Error: Could not read csv.')
         raise Exception()
 
 def read_parquets(s3, path, bucket):
+    '''Reads the contents of a parquet object in an s3 bucket and returns the contents as a dictionary'''
     try:
         response = s3.get_object(Bucket=bucket,Key=path)
+    except ClientError as e:
+        logger.error('Error: could not connect to the aws client.')
+        raise e
+    except NoSuchKey as e:
+        logger.error(f'Error: No object "{path}" in bucket "{bucket}"')
+        raise e
     except:
-        logger.error(f'An error occured. Could not get object, Bucket: {bucket}, Path: {path}')
+        logger.error(f'Error.')
+        raise Exception()
     try:
         file=pd.read_parquet(BytesIO(response['Body'].read()))
         return file.to_dict('records')
     except Exception as e:
         logger.error(e)
-        logger.error(f'An error occured. Could not read parquet. Bucket: {bucket}, Path: {path}')
+        logger.error(f'An error occured. Could not read parquet.')
         raise Exception()
 
 
 
 def write_to_db(conn, query, var_in):
+    '''Writes a sql query to the warehouse db'''
     with conn.cursor() as cur:
         try:
             cur.execute(query, var_in)
@@ -114,6 +132,7 @@ id_columns = {
 }
 
 def query_builder(r, filename):
+    '''Build a '''
     keys = list(r.keys())
     values = [r[k] for k in keys]
     update_strings = [f'{k} = EXCLUDED.{k}' for k in keys ]
