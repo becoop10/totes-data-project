@@ -252,7 +252,8 @@ def lambda_handler(event, context):
                                 logger.info(headers)
                                 csv_file_name = '/tmp/data.csv'
                                 if 'fact' in filename:
-                                    query = f'COPY {filename} ({', '.join(headers)}) FROM STDIN DELIMITER \',\' CSV HEADER'
+                                    headers_string = ', '.join(headers)
+                                    query = f'COPY {filename} ({headers_string}) FROM STDIN DELIMITER \',\' CSV HEADER'
                                     cur.copy_expert(query, open(csv_file_name, "r"))
                                 else:
                                     query = f'COPY {filename} FROM STDIN DELIMITER \',\' CSV HEADER'
