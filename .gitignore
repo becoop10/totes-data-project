@@ -6,9 +6,6 @@ df.parquet.gzip
 function/package/
 .terraform
 .terraform*
-package
-.gitignore
 *old*
-requirements.txt
-*test*
-.zip
+test_load.py
+*package*
