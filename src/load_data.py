@@ -217,6 +217,11 @@ def lambda_handler(event, context):
     response=int(response)
 
     with conn.cursor() as cur:
+        if response==0:
+
+            for key in list(id_columns.keys()).reverse():
+                cur.execute(f"DELETE FROM {key};")
+
         for key in list(id_columns.keys()):
             for f in updated_files:
                 if key in f:
@@ -235,7 +240,6 @@ def lambda_handler(event, context):
                                 # df['purchase_order_id'] = df['purchase_order_id'].astype('Int64')
                                 # df['sales_order_id'].replace('', pd.np.nan, inplace = True)
                                 # df.to_csv('file_name.csv', index=False)
-                                cur.execute(f"DELETE FROM {filename};")
 
                                 if filename == 'fact_sales_order':
                                     cur.execute(f"ALTER TABLE {filename} ALTER COLUMN sales_record_id RESTART WITH 1;")
