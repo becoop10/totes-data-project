@@ -242,7 +242,7 @@ def lambda_handler(event, context):
                                 headers=[header[0] for header in headers]
                                 if filename == "dim_transaction":
                                     cols = ['sales_order_id', 'purchase_order_id']
-                                    sorted_data[cols] = sorted_data[cols].applymap(np.int64)
+                                    sorted_data[cols] = sorted_data[cols].applymap(pd.np.int64)
                                 sorted_data = sorted_data.reindex(columns=headers)
                                 sorted_data.to_csv('/tmp/data.csv', index=False)
                                 logger.info(headers)
