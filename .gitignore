@@ -8,3 +8,4 @@ function/package/
 .terraform*
 *old*
 test_load.py
+*package*
