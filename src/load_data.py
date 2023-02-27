@@ -244,6 +244,8 @@ def lambda_handler(event, context):
                                     #sorted_data[cols] = sorted_data[cols].applymap(pd.np.int64)
                                     sorted_data['sales_order_id'] = sorted_data['sales_order_id'].astype('Int64')
                                     sorted_data['purchase_order_id'] = sorted_data['purchase_order_id'].astype('Int64')
+                                if 'fact' in filename:
+                                    headers.pop(0)
                                 sorted_data=sorted_data.replace(pd.np.nan, None)
                                 sorted_data = sorted_data.reindex(columns=headers)
                                 sorted_data.to_csv('/tmp/data.csv', index=False)
