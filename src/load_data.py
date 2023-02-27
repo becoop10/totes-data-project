@@ -158,9 +158,9 @@ def query_builder(r, filename, invocations):
         # query = f'INSERT INTO {filename} ({key_string}) VALUES %s WHERE {id_v} NOT IN (select {id_columns[filename]} FROM {filename});\
         #           UPDATE {filename} SET {full_fact_update_string} WHERE {id_v} IN (select {id_columns[filename]} FROM {filename});'
 
-        query = f'DO $$ declare comparrison INT:={id_v}; \
+        query = f'DO $$ declare comparison INT:={id_v}; \
                 BEGIN \
-                IF comparrison IN (select {id_columns[filename]} FROM {filename}) THEN \
+                IF comparison IN (select {id_columns[filename]} FROM {filename}) THEN \
                 UPDATE {filename} SET {full_fact_update_string} WHERE {id_columns[filename]}={id_v}; \
                 ELSE \
                 INSERT INTO {filename} \
@@ -240,6 +240,10 @@ def lambda_handler(event, context):
                                 # df.to_csv('file_name.csv', index=False)
                                 conn = build_connection()
                                 with conn.cursor() as cur:
+                                    cur.execute("SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (filename,))
+                                    headers=cur.fetchall()
+                                    headers=[header[0] for header in headers]
+                                    sorted_data = sorted_data.reindex(columns=headers)
                                     query = f'COPY {filename} FROM STDIN DELIMITER \',\' CSV HEADER'
                                     csv_file_name = '/tmp/data.csv'
                                     cur.copy_expert(query, open(csv_file_name, "r"))
