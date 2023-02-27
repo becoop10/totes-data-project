@@ -97,7 +97,6 @@ def read_parquets(s3, path, bucket):
         raise Exception()
     try:
         file=pd.read_parquet(BytesIO(response['Body'].read()))
-        file=file.replace(pd.np.nan, None)
         return file
     except Exception as e:
         logger.error(e)
@@ -243,6 +242,7 @@ def lambda_handler(event, context):
                                 if filename == "dim_transaction":
                                     cols = ['sales_order_id', 'purchase_order_id']
                                     sorted_data[cols] = sorted_data[cols].applymap(pd.np.int64)
+                                sorted_data=sorted_data.replace(pd.np.nan, None)
                                 sorted_data = sorted_data.reindex(columns=headers)
                                 sorted_data.to_csv('/tmp/data.csv', index=False)
                                 logger.info(headers)
@@ -251,6 +251,7 @@ def lambda_handler(event, context):
                                 cur.copy_expert(query, open(csv_file_name, "r"))
                                 conn.commit()
                             else:
+                                sorted_data=sorted_data.replace(pd.np.nan, None)
                                 sorted_data = sorted_data.to_dict('records')
                                 for r in sorted_data:      
                                     query, var_in = query_builder(r, filename, response)
