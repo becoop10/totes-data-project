@@ -228,7 +228,6 @@ def lambda_handler(event, context):
                             data = read_parquets(s3, file, bucket)
                             sorted_data = data_sorter(data, filename)
 
-                            response = 1
                             if response == 0:
                                 sorted_data.to_csv('/tmp/data.csv', index=False)
                                 # df = pd.read_parquet('2023-02-24 11_05_10.066000.parquet', engine='fastparquet')
