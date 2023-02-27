@@ -48,3 +48,11 @@ Data here is stored in fact and dimension tables. There are three Fact tables (s
 
 The ERD for this database can be seen here:
 (https://dbdiagram.io/d/63a19c5399cb1f3b55a27eca)
+
+## Setup
+
+In the root of the repository, you will find a Makefile, and a run_tests.sh file. These files need to be run for setup.
+
+The Makefile is a set of commands to automate the packaging and deployment of AWS Lambda functions and Terraform infrastructure. The install target installs dependencies listed in the requirements.txt file. The ingest-package, transform-package, and load-package targets package the Lambda functions' code into ZIP files. The clean target removes the build artifacts. The terraform-init, terraform-plan, and terraform-apply targets initialize Terraform, show the execution plan, and apply the changes, respectively. Before using this script, you will need to run the makefile script first by executing the command make from the root of the directory.
+
+The run_tests.sh bashscript file is a set of commands that automate code quality checks and asks for user confirmation before applying them. The first command runs pytest on the specified directories. The next few commands check for autopep8 compliance on several directories and prompt the user to apply the changes if any were found. To use this script, you will need to run chmod +x run_tests.sh in your terminal to allow permissions to run the file, and then execute the script with the following command from the root of the directory: ./run_tests.sh.
