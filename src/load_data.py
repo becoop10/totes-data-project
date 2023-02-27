@@ -246,13 +246,16 @@ def lambda_handler(event, context):
                                     sorted_data['purchase_order_id'] = sorted_data['purchase_order_id'].astype('Int64')
                                 if 'fact' in filename:
                                     headers.pop(0)
+                                # keys
+                                # keys_string = ','.join([])
                                 sorted_data=sorted_data.replace(pd.np.nan, None)
                                 sorted_data = sorted_data.reindex(columns=headers)
                                 sorted_data.to_csv('/tmp/data.csv', index=False)
                                 logger.info(headers)
                                 query = f'COPY {filename} FROM STDIN DELIMITER \',\' CSV HEADER'
                                 csv_file_name = '/tmp/data.csv'
-                                cur.copy_expert(query, open(csv_file_name, "r"))
+                                #cur.copy_expert(query, open(csv_file_name, "r"))
+                                cur.copy_from(open(csv_file_name, "r"), filename, columns=headers)
                                 conn.commit()
                             else:
                                 sorted_data=sorted_data.replace(pd.np.nan, None)
