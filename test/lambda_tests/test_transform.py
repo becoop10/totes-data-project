@@ -39,7 +39,8 @@ def test_lambda_handler_logs_if_no_buckets_are_found(s3, caplog):
         assert 'No buckets found.' in caplog.text
 
 @patch('src.transform_data.get_bucket_names', return_value=['totes-amazeballs-s3-ingested', 'other-s3-bucket'])
-def test_lambda_handler_logs_if_error_both_buckets_are_not_found(s3, caplog):
+def test_lambda_handler_logs_error_if_both_buckets_are_not_found(mock_buckets, s3, caplog):
+    print(mock_buckets())
     with caplog.at_level(logging.INFO):
         lambda_handler({}, {})
         assert 'Error retreiving bucket names.' in caplog.text
@@ -84,11 +85,3 @@ def test_lambda_reads_s3_when_(mock_get_contents, mock_get_file_names, mock_get_
                return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']):
             lambda_handler({}, {})
             mock_get_contents.assert_called_with('totes-amazeballs-s3-ingested', 'data/14:30/payment.json')
-
-# @patch('src.transform_data.get_bucket_names', return_value=[])
-# def test_lambda_handler_logs_if_error_both_buckets_are_not_found(s3, caplog):
-#     s3.create_bucket(Bucket='totes-amazeballs-s3-ingested-data-bucket-0987')
-#     s3.create_bucket(Bucket='totes-amazeballs-s3-processed-data-bucket-0987')
-#     with caplog.at_level(logging.INFO):
-#         lambda_handler({}, {})
-#         assert 'Error retreiving bucket names.' in caplog.text

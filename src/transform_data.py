@@ -61,6 +61,7 @@ def lambda_handler(event, context):
                 bucket_container['processed'] = bucket
             if idx == len(bucket_list) - 1 and len(bucket_container) < 2:
                 logger.error('Error retreiving bucket names.')
+                return
 
     ingested_bucket = bucket_container['ingested']
     processed_bucket = bucket_container['processed']
@@ -89,63 +90,63 @@ def lambda_handler(event, context):
                 dataToBeFormatted[f'{table}_data'] = get_file_contents(
                     ingested_bucket, file)
                 if (table == "counterparty"
-                        and f'data/{timestamp}/address' not in file_list):
+                        and f'data/{timestamp}/address.json' not in file_list):
                     dataToBeFormatted['address_data'] = get_file_contents(
                         ingested_bucket, addressfile)
                 if (table == "staff"
-                        and f'data/{timestamp}/department' not in file_list):
+                        and f'data/{timestamp}/department.json' not in file_list):
                     dataToBeFormatted['department_data'] = get_file_contents(
                         ingested_bucket, departfile)
                 ingested_table_names.remove(table)
 
-    # processTableNames = {
-    #     "dim_counterparty":
-    #     ['counterparty_data', 'address_data', format_counterparty],
-    #     "dim_currency": ['currency_data', format_currency],
-    #     "dim_transaction": ['transaction_data', format_transaction],
-    #     "dim_design": ['design_data', format_design],
-    #     "dim_payment_type": ['payment_type_data', format_payment_type],
-    #     "fact_payment": ['payment_data', format_payments],
-    #     "fact_purchase_order": ["purchase_order_data", format_purchase],
-    #     "fact_sales_order": ["sales_order_data", format_sales_facts],
-    #     "dim_staff": ["staff_data", "department_data", format_staff],
-    #     "dim_location": ["address_data", format_location]
-    # }
+    processTableNames = {
+        "dim_counterparty":
+        ['counterparty_data', 'address_data', format_counterparty],
+        "dim_currency": ['currency_data', format_currency],
+        "dim_transaction": ['transaction_data', format_transaction],
+        "dim_design": ['design_data', format_design],
+        "dim_payment_type": ['payment_type_data', format_payment_type],
+        "fact_payment": ['payment_data', format_payments],
+        "fact_purchase_order": ["purchase_order_data", format_purchase],
+        "fact_sales_order": ["sales_order_data", format_sales_facts],
+        "dim_staff": ["staff_data", "department_data", format_staff],
+        "dim_location": ["address_data", format_location]
+    }
 
-    # for datakey in dataToBeFormatted.keys():
-    #     for tablekey in processTableNames.keys():
-    #         if datakey in processTableNames[tablekey]:
-    #             functionList = processTableNames[tablekey]
-    #             if tablekey == "dim_counterparty":
-    #                 formatteddata = functionList[2](
-    #                     dataToBeFormatted[functionList[0]],
-    #                     dataToBeFormatted[functionList[1]])
-    #             elif tablekey == "dim_staff":
-    #                 formatteddata = functionList[2](
-    #                     dataToBeFormatted[functionList[0]],
-    #                     dataToBeFormatted[functionList[1]])
-    #             else:
-    #                 formatteddata = functionList[1](
-    #                     dataToBeFormatted[functionList[0]])
-    #             try:
-    #                 filestring = f'data/{tablekey}/{timestamp}.parquet'
-    #                 write_file_to_processed_bucket(
-    #                     processed_bucket, filestring, formatteddata)
-    #                 logger.info(f'{tablekey} parquet updated')
-    #                 if filestring not in updatedfiles:
-    #                     updatedfiles.append(filestring)
-    #             except Exception as e:
-    #                 logger.error(e)
+    for datakey in dataToBeFormatted.keys():
+        for tablekey in processTableNames.keys():
+            if datakey in processTableNames[tablekey]:
+                functionList = processTableNames[tablekey]
+                if tablekey == "dim_counterparty":
+                    formatteddata = functionList[2](
+                        dataToBeFormatted[functionList[0]],
+                        dataToBeFormatted[functionList[1]])
+                elif tablekey == "dim_staff":
+                    formatteddata = functionList[2](
+                        dataToBeFormatted[functionList[0]],
+                        dataToBeFormatted[functionList[1]])
+                else:
+                    formatteddata = functionList[1](
+                        dataToBeFormatted[functionList[0]])
+                try:
+                    filestring = f'data/{tablekey}/{timestamp}.parquet'
+                    write_file_to_processed_bucket(
+                        processed_bucket, filestring, formatteddata)
+                    logger.info(f'{tablekey} parquet updated')
+                    if filestring not in updatedfiles:
+                        updatedfiles.append(filestring)
+                except Exception as e:
+                    logger.error(e)
 
-    # df = pd.DataFrame(updatedfiles, columns=["File names"])
-    # out_buffer = BytesIO()
-    # df.to_csv(out_buffer, index=False)
+    df = pd.DataFrame(updatedfiles, columns=["File names"])
+    out_buffer = BytesIO()
+    df.to_csv(out_buffer, index=False)
 
-    # try:
-    #     s3.put_object(Body=out_buffer.getvalue(),
-    #                   Bucket=processed_bucket, Key="updatedfiles.csv")
-    # except ClientError as e:
-    #     logger.error(e)
-    # except Exception:
-    #     logger.error("Unknown error writing to Updated Files")
-    #     raise Exception
+    try:
+        s3.put_object(Body=out_buffer.getvalue(),
+                      Bucket=processed_bucket, Key="updatedfiles.csv")
+    except ClientError as e:
+        logger.error(e)
+    except Exception:
+        logger.error("Unknown error writing to Updated Files")
+        raise Exception
