@@ -61,7 +61,6 @@ def lambda_handler(event, context):
                 bucket_container['processed'] = bucket
             if idx == len(bucket_list) - 1 and len(bucket_container) < 2:
                 logger.error('Error retreiving bucket names.')
-                return "hello"
 
     ingested_bucket = bucket_container['ingested']
     processed_bucket = bucket_container['processed']
