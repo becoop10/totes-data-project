@@ -16,7 +16,7 @@ env:
 on:
   push:
     branches:
-      - main
+      - package-management
     
   workflow_dispatch:
     inputs:

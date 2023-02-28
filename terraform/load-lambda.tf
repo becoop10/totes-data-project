@@ -114,10 +114,9 @@ resource "aws_lambda_permission" "load_allow_s3" {
   source_account = data.aws_caller_identity.current.account_id
 }
 
-
 data "archive_file" "load_lambda" {
   type        = "zip"
-  source_file = "../src/load_data.py"
+  source_dir = "../src/load_package.py"
   output_path = "../src/load_deployment.zip"
 }
 

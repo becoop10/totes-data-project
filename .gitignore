@@ -8,5 +8,4 @@ function/package/
 .terraform*
 *old*
 test_load.py
-*package*
 setup-db-credentials.sh
