@@ -12,22 +12,31 @@ logger.setLevel(logging.INFO)
 '''Utility and helper functions which are called by the transform data lambda'''
 
 
-
-
-
-def get_bucket_names():
-    '''Obtains the full names of the processed and ingested buckets in s3 regardless of the randomised suffix'''
-    s3 = boto3.resource('s3')
+def get_timestamp(s3, bucket_name, timestamp_key):
+    '''retreives timestamp from bucket - if not in correct format or unable to retrieve raises exception'''
     try:
-        bucket_list = []
-        for bucket in s3.buckets.all():
-            print(bucket.name)
-            if "ingested" in bucket.name:
-                bucket_list.append(bucket.name)
-            if "processed" in bucket.name:
-                print(bucket.name)
-                bucket_list.append(bucket.name)
-        return bucket_list
+        response = s3.get_object(Bucket=bucket_name, Key=timestamp_key)
+        timestamp = response['Body'].read().decode("utf-8").rstrip("\n")
+        for char in timestamp:
+            if char.isalpha() == True or char == ';':
+                logger.error('Timestamp file contents unacceptable')
+                raise Exception()
+        return timestamp
+    except ClientError as c:
+        if c.response['Error']['Code'] == 'NoSuchKey':
+            logger.error(f'No file {timestamp_key}')
+        elif c.response['Error']['Code'] == 'NoSuchBucket':
+            logger.error(f'No bucket {bucket_name}')
+    except Exception:
+        logger.error('Unable to retrieve timestamp.')
+        raise RuntimeError
+    
+
+def get_bucket_names(client):
+    '''Returns list of bucket names in s3'''
+    try:
+        response = client.list_buckets()
+        return [bucket['Name'] for bucket in response['Buckets']]
     except ClientError as c:
         logger.error(c)
         raise c
