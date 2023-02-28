@@ -4,6 +4,8 @@ import json
 import pandas as pd 
 from io import BytesIO
 import math
+from botocore.exceptions import ClientError
+
 logger = logging.getLogger('DBTransformationLogger')
 logger.setLevel(logging.INFO)
 
@@ -16,14 +18,24 @@ logger.setLevel(logging.INFO)
 def get_bucket_names():
     '''Obtains the full names of the processed and ingested buckets in s3 regardless of the randomised suffix'''
     s3 = boto3.resource('s3')
-    for bucket in s3.buckets.all():
-        if "ingested" in bucket.name:
-            ingested_bucket = bucket.name
-        if "processed" in bucket.name:
-            processed_bucket = bucket.name
-    return [ingested_bucket, processed_bucket]
-
-
+    try:
+        bucket_list = []
+        for bucket in s3.buckets.all():
+            print(bucket.name)
+            if "ingested" in bucket.name:
+                bucket_list.append(bucket.name)
+            if "processed" in bucket.name:
+                print(bucket.name)
+                bucket_list.append(bucket.name)
+        return bucket_list
+    except ClientError as c:
+        logger.error(c)
+        raise c
+    except Exception as e:
+        logger.error(e)
+        raise RuntimeError
+    
+    
 def get_file_names(bucket_name, prefix):
     '''Obtains the names of all the files stored in the relevant s3 bucket'''
     s3 = boto3.client('s3')

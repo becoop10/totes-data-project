@@ -24,13 +24,15 @@ def s3(aws_credentials):
         yield boto3.client("s3", region_name="us-east-1")
 
 def test_get_bucket_name_assigns_correct_bucket_names_to_variables(s3):
-
     s3.create_bucket(Bucket='totes-amazeballs-s3-ingested-data-bucket-0987')
     s3.create_bucket(Bucket='totes-amazeballs-s3-processed-data-bucket-0987')
 
     assert get_bucket_names() == ['totes-amazeballs-s3-ingested-data-bucket-0987',
                                   'totes-amazeballs-s3-processed-data-bucket-0987']
+    
+def test_get_bucket_names_returns_empty_list_when_there_are_no_buckets(s3):
 
+    assert get_bucket_names() == []
 
 def test_get_file_names_correctly_retrieves_file_names_in_ingested_bucket(s3):
 
