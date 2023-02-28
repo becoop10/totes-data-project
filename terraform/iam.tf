@@ -36,6 +36,18 @@ data "aws_iam_policy_document" "s3_document" {
     }
 }
 
+data "aws_iam_policy_document" "lamda_reset_document" {
+  statement {
+
+        actions = [ "lambda:UpdateFunctionConfiguration" ]
+
+        resources = [
+            "*"
+        ]
+
+  }
+}
+
 data "aws_iam_policy_document" "cw_document" {
      statement {
 
@@ -97,4 +109,15 @@ resource "aws_iam_role_policy_attachment" "lambda_cw_policy_attachment" {
 resource "aws_iam_role_policy_attachment" "lambda_sm_policy_attachment" {
     role = aws_iam_role.ingest_lambda_role.name
     policy_arn = aws_iam_policy.sm_policy.arn
+}
+
+resource "aws_iam_policy" "lambda_reset_policy" {
+    name_prefix = "lambda_reset-${var.ingest_lambda_name}"
+    policy = data.aws_iam_policy_document.lambda_reset_document.json
+}
+
+
+resource "aws_iam_role_policy_attachment" "lambda_sm_policy_attachment" {
+    role = aws_iam_role.ingest_lambda_role.name
+    policy_arn = aws_iam_policy.lambda_reset_policy.arn
 }
