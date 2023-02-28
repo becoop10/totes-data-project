@@ -131,6 +131,7 @@ resource "aws_lambda_function" "transform_lambda" {
     handler = "transform_data.lambda_handler"
     runtime = "python3.9"
     layers = ["arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p39-pandas:11",]
+    source_code_hash = data.archive_file.transform_lambda.output_base64sha256
     timeout = "30"
 }
 
