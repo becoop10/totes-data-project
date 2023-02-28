@@ -1,20 +1,18 @@
 import boto3
 import logging
 import json
-import pandas as pd 
+import pandas as pd
 from io import BytesIO
-import math
 logger = logging.getLogger('DBTransformationLogger')
 logger.setLevel(logging.INFO)
 
-'''Utility and helper functions which are called by the transform data lambda'''
-
-
-
+'''Utility and helper functions which are
+called by the transform data lambda'''
 
 
 def get_bucket_names():
-    '''Obtains the full names of the processed and ingested buckets in s3 regardless of the randomised suffix'''
+    '''Obtains the full names of the processed and ingested buckets in
+    s3 regardless of the randomised suffix'''
     s3 = boto3.resource('s3')
     for bucket in s3.buckets.all():
         if "ingested" in bucket.name:
@@ -24,10 +22,10 @@ def get_bucket_names():
     return [ingested_bucket, processed_bucket]
 
 
-def get_file_names(bucket_name,prefix):
+def get_file_names(bucket_name, prefix):
     '''Obtains the names of all the files stored in the relevant s3 bucket'''
     s3 = boto3.client('s3')
-    response = s3.list_objects(Bucket=bucket_name,Prefix=prefix)
+    response = s3.list_objects(Bucket=bucket_name, Prefix=prefix)
     try:
         return [file['Key'] for file in response['Contents']]
     except KeyError:
@@ -44,16 +42,19 @@ def get_file_contents(bucket_name, file_name):
 
 
 def write_file_to_processed_bucket(bucket_name, key, list):
-    '''Converts the formatted data into a parquet file, and then writes the file to a given s3 bucket'''
+    '''Converts the formatted data into a parquet file,
+    and then writes the file to a given s3 bucket'''
     s3 = boto3.client('s3')
     pandadataframe = pd.DataFrame(list)
     out_buffer = BytesIO()
     pandadataframe.to_parquet(out_buffer, index=False)
     s3.put_object(Bucket=bucket_name, Key=key, Body=out_buffer.getvalue())
 
-'''The following functions format ingested data from the totesys database, into the    
-pattern needed for the relevant table in the new star schema. Each function is 
-named for the table they will load into'''
+
+'''The following functions format ingested data from the totesys database,
+into the pattern needed for the relevant table in the new star schema.
+Each function is named for the table they will load into'''
+
 
 def format_counterparty(raw_counter, raw_address):
 
@@ -86,7 +87,7 @@ def format_counterparty(raw_counter, raw_address):
 
 
 def format_currency(raw_currency):
-    currency_names = {
+    cur_names = {
 
         "AED": "United Arab Emirates Dirham",
         "AFN": "Afghan Afghani",
@@ -259,18 +260,19 @@ def format_currency(raw_currency):
 
     }
     formatted_currency = []
-    for currency_data in raw_currency:
-        new_details = {}
-        new_details['currency_id'] = currency_data['currency_id']
-        new_details['currency_code'] = currency_data['currency_code']
+    for cur_data in raw_currency:
+        new_cur_data = {}
+        new_cur_data['currency_id'] = cur_data['currency_id']
+        new_cur_data['currency_code'] = cur_data['currency_code']
         try:
-            new_details['currency_name'] = currency_names[currency_data['currency_code']]
+            new_cur_data['currency_name'] = cur_names[
+                                                    cur_data['currency_code']]
         except KeyError:
-            new_details['currency_name'] = "Unrecognised"
+            new_cur_data['currency_name'] = "Unrecognised"
             logger.error(
-                f'{currency_data["currency_code"]} no matching currency found')
+                f'{cur_data["currency_code"]} no matching currency found')
             continue
-        formatted_currency.append(new_details)
+        formatted_currency.append(new_cur_data)
     return formatted_currency
 
 
@@ -293,15 +295,19 @@ def format_payment_type(raw_data):
     formatted_data = remove_keys(raw_data)
     return formatted_data
 
+
 def format_transaction(raw_data):
-    formatted_data=remove_keys(raw_data)
+    formatted_data = remove_keys(raw_data)
     return formatted_data
 
 
 def format_payments(raw_data):
     time_formatted_data = [time_splitter(payment) for payment in raw_data]
-    formatted_data = remove_keys(time_formatted_data, remove=[
-                                 'company_ac_number', 'counterparty_ac_number'])
+    formatted_data = remove_keys(
+        time_formatted_data,
+        remove=[
+            'company_ac_number',
+            'counterparty_ac_number'])
     return formatted_data
 
 
@@ -326,9 +332,11 @@ def format_sales_facts(raw_sales_data):
                 new_details['created_date'] = sale['created_at'].split(' ')[0]
                 new_details['created_time'] = sale['created_at'].split(' ')[1]
             elif key == "last_updated":
-                new_details['last_updated_date'] = sale['last_updated'].split(' ')[
+                new_details['last_updated_date'] = sale[
+                                                    'last_updated'].split(' ')[
                     0]
-                new_details['last_updated_time'] = sale['last_updated'].split(' ')[
+                new_details['last_updated_time'] = sale[
+                                                    'last_updated'].split(' ')[
                     1]
             else:
                 new_details[key] = sale[key]
@@ -360,37 +368,46 @@ def format_staff(unformatted_staff, unformatted_depts):
 
             continue
 
-    return formatted_staff   
+    return formatted_staff
 
 
 def find_match(primarykey, secondarykey, target, search_list):
-    '''A helper function for the formatting functions, this function matches the target dictionary to 
+    '''A helper function for the formatting functions,
+    this function matches the target dictionary to
     the dictionary with the primary secondary match in the list given'''
     result = [match for match in search_list if match[secondarykey]
               == target[primarykey]][0]
     return result
 
 
-def remove_keys(list,remove=["created_at","last_updated"]):
-    '''Will remove the given keys (default created at and last updated) from a list of dictionaries, while not 
+def remove_keys(list, remove=["created_at", "last_updated"]):
+    '''Will remove the given keys (default created at and last updated)
+    from a list of dictionaries, while not
     mutating'''
-    return [{key:dictionary[key] for key in dictionary if key not in remove} for dictionary in list]
+    return [{key: dictionary[key]
+             for key in dictionary
+             if key not in remove} for dictionary in list]
 
 
 def time_splitter(dictionary):
-        '''Splits the created and last updated keys into a time key and a date key, for use
-        in the star schema as dim and fact.'''
-    
-        new_details = {}
-        for key in dictionary:
-            if key == "created_at":
-                new_details['created_date'] = dictionary['created_at'].split(' ')[0]
-                new_details['created_time'] = dictionary['created_at'].split(' ')[1]
-            elif key == "last_updated":
-                new_details['last_updated_date'] = dictionary['last_updated'].split(' ')[0]
-                new_details['last_updated_time'] = dictionary['last_updated'].split(' ')[1]
-            else:
-                new_details[key]=dictionary[key]
-        return new_details
-        
-   
+    '''Splits the created and last updated keys into a time key and a date key,
+    for use in the star schema as dim and fact.'''
+
+    new_details = {}
+    for key in dictionary:
+        if key == "created_at":
+            new_details['created_date'] = dictionary['created_at'].split(' ')[
+                0]
+            new_details['created_time'] = dictionary['created_at'].split(' ')[
+                1]
+        elif key == "last_updated":
+            new_details['last_updated_date'] = dictionary[
+                                                    'last_updated'].split(' ')[
+                0]
+            new_details['last_updated_time'] = dictionary[
+                                                    'last_updated'].split(' ')[
+                1]
+
+        else:
+            new_details[key] = dictionary[key]
+    return new_details
