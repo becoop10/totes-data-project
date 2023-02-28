@@ -24,7 +24,7 @@ def get_bucket_names():
     return [ingested_bucket, processed_bucket]
 
 
-def get_file_names(bucket_name,prefix):
+def get_file_names(bucket_name, prefix):
     '''Obtains the names of all the files stored in the relevant s3 bucket'''
     s3 = boto3.client('s3')
     response = s3.list_objects(Bucket=bucket_name,Prefix=prefix)

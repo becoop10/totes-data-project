@@ -1,7 +1,6 @@
 import json
 import datetime
 import boto3
-
 import logging
 import psycopg2
 import os

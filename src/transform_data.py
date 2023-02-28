@@ -1,4 +1,19 @@
-from myutils import get_bucket_names,get_file_names,get_file_contents,write_file_to_processed_bucket,format_counterparty,format_currency,format_design,format_staff,format_location,format_transaction,format_payment_type, format_payments,format_sales_facts,format_purchase
+if __name__ == "__main__":
+    from myutils import (
+        get_bucket_names, get_file_names, get_file_contents,
+        write_file_to_processed_bucket,format_counterparty,
+        format_currency,format_design,format_staff,
+        format_location,format_transaction,format_payment_type, 
+        format_payments,format_sales_facts,format_purchase
+        )
+else:
+    from function.myutils import (
+        get_bucket_names, get_file_names, get_file_contents,
+        write_file_to_processed_bucket,format_counterparty,
+        format_currency,format_design,format_staff,
+        format_location,format_transaction,format_payment_type, 
+        format_payments,format_sales_facts,format_purchase
+        )
 
 import boto3
 import json
@@ -6,10 +21,10 @@ import logging
 import pandas as pd
 from io import BytesIO
 from botocore.exceptions import ClientError
-logger = logging.getLogger('DBTransformationLogger')
-logger.setLevel(logging.INFO)
 import pyarrow
 
+logger = logging.getLogger('DBTransformationLogger')
+logger.setLevel(logging.INFO)
 
 
 def lambda_handler(event, context):
@@ -52,7 +67,7 @@ def lambda_handler(event, context):
         raise Exception()
 
 
-    file_list = get_file_names(ingested_bucket,f'data/{timestamp}/')
+    file_list = get_file_names(ingested_bucket, f'data/{timestamp}/')
 
 
     ingestedTableNames=["sales_order","counterparty","currency","department","design","staff","address","payment_type","payment","purchase_order","transaction"]
