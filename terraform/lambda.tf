@@ -1,7 +1,7 @@
 data "archive_file" "ingest_lambda" {
   type        = "zip"
-  source_file = "src/ingest_data.py"
-  output_path = "src/ingest_deployment.zip"
+  source_file = "../src/ingest_data.py"
+  output_path = "../src/ingest_deployment.zip"
 }
 
 resource "aws_lambda_function" "ingest_lambda" {

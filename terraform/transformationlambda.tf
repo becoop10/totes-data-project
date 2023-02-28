@@ -118,8 +118,8 @@ resource "aws_lambda_permission" "allow_s3" {
 
 data "archive_file" "transform_lambda" {
   type        = "zip"
-  source_file = "src/transform_data.py"
-  output_path = "src/transform_deployment.zip"
+  source_file = "../src/transform_data.py"
+  output_path = "../src/transform_deployment.zip"
 }
 
 resource "aws_lambda_function" "transform_lambda" {
