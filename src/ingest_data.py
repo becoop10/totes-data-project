@@ -4,7 +4,6 @@ import boto3
 
 import logging
 import psycopg2
-import os
 
 from botocore.exceptions import ClientError
 
@@ -38,7 +37,8 @@ def get_secret(client):
 
 
 def db_connect(client):
-    '''creates a connection to the totesys database using db credentials from secret stored'''
+    '''creates a connection to the totesys database using db
+    credentials from secret stored'''
     db_credentials = get_secret(client)
 
     host = db_credentials['host']
@@ -56,12 +56,13 @@ def db_connect(client):
             port=port
         )
         return conn
-    except Exception as e:
+    except Exception:
         logger.error('Error connecting to db')
 
 
 def get_bucket_names():
-    '''Returns list of ingested and processed bucket names regardless of randomised suffix'''
+    '''Returns list of ingested and processed bucket names regardless
+    of randomised suffix'''
     s3 = boto3.resource('s3')
     for bucket in s3.buckets.all():
         if "ingested" in bucket.name:
@@ -77,12 +78,13 @@ def write_to_s3(s3, table_name, data, bucket):
         object_path = f'data/{table_name}.json'
         s3.put_object(Body=data, Bucket=bucket, Key=object_path)
         logger.info(f'{table_name} updated')
-    except:
+    except BaseException:
         logger.error(f'An error occured writing {table_name}.')
 
 
 def format_data(data, headers):
-    '''accepts list of tuples of data and list of tuples equivalent headers, formats as json and returns'''
+    '''accepts list of tuples of data and list of tuples equivalent headers,
+      formats as json and returns'''
     list_of_dicts = []
     for row in data:
         d = {}
@@ -101,21 +103,22 @@ def read_db(query, var_in, db_conn):
         result = cur.fetchall()
         cur.close()
         return result
-    except:
+    except BaseException:
         logger.error(f'An error occured querying {var_in} table.')
 
 
 def get_timestamp(s3, ingest_bucket, timestamp_key):
-    '''retreives timestamp from bucket - if not in correct format or unable to retrieve raises exception'''
+    '''retreives timestamp from bucket - if not in correct format or
+    unable to retrieve raises exception'''
     try:
         response = s3.get_object(Bucket=ingest_bucket, Key=timestamp_key)
         timestamp = response['Body'].read().decode("utf-8").rstrip("\n")
         for char in timestamp:
-            if char.isalpha() == True or char == ';':
+            if char.isalpha() or char == ';':
                 logger.error('Timestamp file contents unacceptable')
                 raise Exception()
         return timestamp
-    except:
+    except BaseException:
         logger.error('Unable to retrieve timestamp.')
         raise Exception()
 
@@ -150,7 +153,7 @@ def lambda_handler(event, context):
     except IndexError as e:
         logger.error('Error:Buckets not set up correctly.')
         raise e
-    except:
+    except BaseException:
         logger.error('An Error occurred.')
         raise Exception()
 
@@ -177,21 +180,34 @@ def lambda_handler(event, context):
 
     for table in tables:
         updated_rows = read_db(
-            f'SELECT * FROM {table} WHERE last_updated > %s;', (last_timestamp,), conn)
+            f'''SELECT *
+                FROM {table}
+                WHERE last_updated > %s;''', (last_timestamp,), conn)
         if len(updated_rows) != 0:
             count += 1
             updated_tables.append(table)
             last_updated_data = read_db(
-                f'SELECT last_updated FROM {table} WHERE last_updated > %s ORDER BY last_updated DESC LIMIT 1;', (last_timestamp,), conn)
+                f'''SELECT last_updated
+                    FROM {table}
+                    WHERE last_updated > %s
+                    ORDER BY last_updated
+                    DESC LIMIT 1;''',
+                (last_timestamp,
+                 ),
+                conn)
             most_recent = last_updated_data[0][0]
             if most_recent > last_timestamp_obj:
                 new_timestamp_obj = most_recent
     for table in updated_tables:
         file_path = f"{new_timestamp_obj}/{table}"
         updated_rows = read_db(
-            f'SELECT * FROM {table} WHERE last_updated > %s;', (last_timestamp,), conn)
+            f'''SELECT *
+                FROM {table}
+                WHERE last_updated > %s;''', (last_timestamp,), conn)
         headers = read_db(
-            "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (table,), conn)
+             '''SELECT COLUMN_NAME
+                FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = %s;''', (table, ), conn)
         data = format_data(updated_rows, headers)
         write_to_s3(s3, file_path, data, ingested_bucket)
         logger.info(f'{table} updated.')
