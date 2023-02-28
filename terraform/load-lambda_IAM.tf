@@ -26,22 +26,29 @@ data "aws_iam_policy_document" "s3_load_document" {
         actions = [
             "s3:PutObject",
             "s3:GetObject",
-            "s3:ListAllMyBuckets",
-            "s3:ListBucket"
             ]
 
         resources = [
             "${aws_s3_bucket.processed_data.arn}/*",
-            "arn:aws:s3:::*"
         ]
     }
     statement {
-        actions = ["lambda:GetFunctionConfiguration","lambda:GetFunction","lambda:InvokeFunction","lambda:InvokeFunctionConfiguration", "lambda:UpdateFunctionConfiguration"]
+        actions = ["lambda:InvokeFunction","lambda:InvokeFunctionConfiguration", "lambda:UpdateFunctionConfiguration"]
 
         resources = [
-            "*"
+            "arn:aws:s3:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
         ]
     }
+}
+
+resource "aws_iam_policy" "s3_load_policy" {
+    name_prefix = "s3-load-policy-${var.load_lambda_name}"
+    policy = data.aws_iam_policy_document.s3_load_document.json
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_s3_load_policy_attachment" {
+    role = aws_iam_role.load_lambda_role.name
+    policy_arn = aws_iam_policy.s3_load_policy.arn
 }
 
 data "aws_iam_policy_document" "cw_load_document" {
@@ -64,10 +71,6 @@ data "aws_iam_policy_document" "cw_load_document" {
   }
 }
 
-resource "aws_iam_policy" "s3_load_policy" {
-    name_prefix = "s3-load-policy-${var.load_lambda_name}"
-    policy = data.aws_iam_policy_document.s3_load_document.json
-}
 
 resource "aws_iam_policy" "cw_load_policy" {
     name_prefix = "cw-policy-${var.load_lambda_name}"
@@ -76,18 +79,9 @@ resource "aws_iam_policy" "cw_load_policy" {
 
 
 
-resource "aws_iam_role_policy_attachment" "lambda_s3_load_policy_attachment" {
-    role = aws_iam_role.load_lambda_role.name
-    policy_arn = aws_iam_policy.s3_load_policy.arn
-}
 resource "aws_iam_role_policy_attachment" "lambda_load_cw_policy_attachment" {
     role = aws_iam_role.load_lambda_role.name
     policy_arn = aws_iam_policy.cw_load_policy.arn
-}
-
-resource "aws_iam_role_policy_attachment" "lambda_load_sm_policy_attachment" {
-    role = aws_iam_role.load_lambda_role.name
-    policy_arn = aws_iam_policy.sm_policy.arn
 }
 
 
@@ -112,17 +106,4 @@ resource "aws_lambda_permission" "load_allow_s3" {
   principal      = "s3.amazonaws.com"
   source_arn     = aws_s3_bucket.processed_data.arn
   source_account = data.aws_caller_identity.current.account_id
-}
-
-
-resource "aws_lambda_function" "load_lambda" {
-    filename = "../src/load_deployment.zip" # Put filepath to load zip here
-    function_name = "${var.load_lambda_name}"
-    role = aws_iam_role.load_lambda_role.arn
-    handler = "load_data.lambda_handler" # Put lambda handler here
-    runtime = "python3.9"
-    layers = [
-        "arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p39-pandas:11"
-        ]
-    timeout = "900"
 }
