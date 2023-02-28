@@ -55,9 +55,24 @@ resource "aws_cloudwatch_log_metric_filter" "any_transform_error" {
     ]
     metric_transformation {
       name = "error_metric"
-      namespace = "ErrorMetrics"
+      namespace = "TransformError"
       value = "1"
     }
+}
+resource "aws_cloudwatch_metric_alarm" "alert_errors" {
+    alarm_name = "error_alert"
+    comparison_operator = "GreaterThanOrEqualToThreshold"
+    evaluation_periods = "1"
+    metric_name = "error_metric"
+    namespace = "TransformError"
+    period = "60"
+    statistic = "Sum"
+    threshold = "1"
+    alarm_description = "Metric filter activates alarm when error found"
+    actions_enabled = "true"
+    alarm_actions = [aws_sns_topic.test_error_alerts.arn]
+    insufficient_data_actions = []
+    treat_missing_data = "ignore"
 }
 
 resource "aws_cloudwatch_log_group" "load_lambda_log_group" {
@@ -73,9 +88,24 @@ resource "aws_cloudwatch_log_metric_filter" "any_load_error" {
     ]
     metric_transformation {
       name = "error_metric"
-      namespace = "ErrorMetrics"
+      namespace = "LoadError"
       value = "1"
     }
+}
+resource "aws_cloudwatch_metric_alarm" "alert_errors" {
+    alarm_name = "error_alert"
+    comparison_operator = "GreaterThanOrEqualToThreshold"
+    evaluation_periods = "1"
+    metric_name = "error_metric"
+    namespace = "LoadError"
+    period = "60"
+    statistic = "Sum"
+    threshold = "1"
+    alarm_description = "Metric filter activates alarm when error found"
+    actions_enabled = "true"
+    alarm_actions = [aws_sns_topic.test_error_alerts.arn]
+    insufficient_data_actions = []
+    treat_missing_data = "ignore"
 }
 
 resource "aws_cloudwatch_log_metric_filter" "duration_error" {
