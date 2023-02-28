@@ -17,7 +17,7 @@ on:
   push:
     branches:
       - main
-    
+
   workflow_dispatch:
     inputs:
       environment:
@@ -25,7 +25,25 @@ on:
         default: dev
         required: false
 jobs:
+  do-makefile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: get the repo
+        uses: actions/checkout@v3.3.0
+      - name: get python
+        uses: actions/setup-python@v4.5.0
+        with:
+          python-version: "3.9"
+      - name: install make
+        run: sudo apt-get install -y make
+      - name: get requirements
+        run: make requirements
+      - name: set up dev
+        run: make dev-setup
+      - name: make checks
+        run: make run-checks
   terraform:
+    needs: do-makefile
     runs-on: ubuntu-latest
     environment: test
     steps:
@@ -40,7 +58,7 @@ jobs:
       - name: AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          aws-access-key-id:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
@@ -61,10 +79,9 @@ jobs:
       - name: Terraform Plan
         working-directory: ./terraform
         id: plan
-        run: terraform plan -no-color -input=false 
+        run: terraform plan -no-color -input=false
 
       - name: Terraform Apply
         working-directory: ./terraform
         id: apply
         run: terraform apply -auto-approve -input=false
-        
