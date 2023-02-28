@@ -118,7 +118,7 @@ resource "aws_lambda_permission" "allow_s3" {
 
 data "archive_file" "transform_lambda" {
   type        = "zip"
-  source_dir = "../src/transform_package.py"
+  source_dir = "../src/transform_package"
   output_path = "../src/transform_deployment.zip"
 }
 

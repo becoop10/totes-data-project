@@ -1,6 +1,6 @@
 data "archive_file" "ingest_lambda" {
   type        = "zip"
-  source_dir = "../src/ingest_package.py"
+  source_dir = "../src/ingest_package"
   output_path = "../src/ingest_deployment.zip"
 }
 

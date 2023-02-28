@@ -116,7 +116,7 @@ resource "aws_lambda_permission" "load_allow_s3" {
 
 data "archive_file" "load_lambda" {
   type        = "zip"
-  source_dir = "../src/load_package.py"
+  source_dir = "../src/load_package"
   output_path = "../src/load_deployment.zip"
 }
 
