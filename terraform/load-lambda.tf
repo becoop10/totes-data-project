@@ -115,6 +115,12 @@ resource "aws_lambda_permission" "load_allow_s3" {
 }
 
 
+data "archive_file" "load_lambda" {
+  type        = "zip"
+  source_file = "src/load_data.py"
+  output_path = "src/load_deployment.zip"
+}
+
 resource "aws_lambda_function" "load_lambda" {
     filename = "../src/load_deployment.zip" # Put filepath to load zip here
     function_name = "${var.load_lambda_name}"

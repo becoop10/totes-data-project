@@ -9,3 +9,4 @@ function/package/
 *old*
 test_load.py
 *package*
+setup-db-credentials.sh

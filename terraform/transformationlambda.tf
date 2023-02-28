@@ -115,6 +115,13 @@ resource "aws_lambda_permission" "allow_s3" {
   source_account = data.aws_caller_identity.current.account_id
 }
 
+
+data "archive_file" "transform_lambda" {
+  type        = "zip"
+  source_file = "src/transform_data.py"
+  output_path = "src/transform_deployment.zip"
+}
+
 resource "aws_lambda_function" "transform_lambda" {
     # s3_bucket=aws_s3_bucket.lambda_bucket.id
     # s3_key="/ingest.zip"
