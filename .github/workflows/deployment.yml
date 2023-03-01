@@ -39,9 +39,10 @@ jobs:
       - name: get requirements
         run: make requirements
       - name: make tests
-        run: unit-test
+        run: make unit-test
 
   terraform:
+    needs: do-makefile
     runs-on: ubuntu-latest
     environment: test
     steps:
