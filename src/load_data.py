@@ -209,7 +209,9 @@ def lambda_handler(event, context):
     try:
         response=result['Environment']['Variables']['Invocations']
         logger.info(response)
-    except:
+    except Exception as e:
+        logger.info(result)
+        logger.info(e)
         response=0
     response=int(response)
 
