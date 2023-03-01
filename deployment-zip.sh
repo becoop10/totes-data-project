@@ -17,7 +17,7 @@ then
     zip -r ../ingest_deployment.zip .
     cd ..
     zip ingest_deployment.zip ingest_data.py
-    #rm -r ingest_package
+    rm -r ingest_package
     cd ..
 fi
 
@@ -25,13 +25,13 @@ if [ $input = 't' ] || [ $input = 'a' ]
 then
     rm src/transform_deployment.zip
     pip install pyarrow --target src/transform_package
-    cp src/utils/myutils.py src/transform_package
+    cp src/utils/myutils.py src/utils/transform_package
     cd src/transform_package
     rm -r numpy numpy.libs numpy-1.24.2.dist-info
     zip -r ../transform_deployment.zip .
     cd ..
     zip transform_deployment.zip transform_data.py
-    #rm -r transform_package
+    rm -r transform_package
     cd ..
 fi
 
@@ -44,7 +44,7 @@ then
     rm -r numpy numpy.libs numpy-1.24.2.dist-info
     zip -r ../load_deployment.zip .
     cd ..
-    #rm -r load_package
+    rm -r load_package
     zip load_deployment.zip load_data.py
     cd ..
 fi

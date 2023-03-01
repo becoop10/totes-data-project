@@ -1,23 +1,11 @@
-if __name__ == "__main__":
-    from myutils import (
-        get_bucket_names, get_timestamp, get_file_names, get_file_contents,
-        write_file_to_processed_bucket, format_counterparty,
-        format_currency, format_design, format_staff,
-        format_location, format_transaction, format_payment_type,
-        format_payments, format_sales_facts, format_purchase
-    )
-    import json
-    import pyarrow
 
-
-else:
-    from utils.myutils import (
-        get_bucket_names, get_timestamp, get_file_names, get_file_contents,
-        write_file_to_processed_bucket, format_counterparty,
-        format_currency, format_design, format_staff,
-        format_location, format_transaction, format_payment_type,
-        format_payments, format_sales_facts, format_purchase
-    )
+from utils.myutils import (
+    get_bucket_names, get_timestamp, get_file_names, get_file_contents,
+    write_file_to_processed_bucket, format_counterparty,
+    format_currency, format_design, format_staff,
+    format_location, format_transaction, format_payment_type,
+    format_payments, format_sales_facts, format_purchase
+)
 
 import boto3
 import logging
