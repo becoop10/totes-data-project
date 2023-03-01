@@ -1,4 +1,4 @@
-from utils.utils import format_location
+from src.utils.myutils import format_location
 
 
 def test_format_location_for_a_single_item():
@@ -16,7 +16,7 @@ def test_format_location_for_a_single_item():
     }]
 
     expected = [{
-        "address_id": 3,
+        "location_id": 3,
         "address_line_1": "42 Hitchhiker's Guide",
         "address_line_2": "To the Galaxy",
         "district": "Adams",
@@ -85,7 +85,7 @@ def test_location_formats_for_multiple_in_list():
     }]
     expected = [
         {
-            "address_id": 3,
+            "location_id": 3,
             "address_line_1": "42 Hitchhiker's Guide",
             "address_line_2": "To the Galaxy",
             "district": "Adams",
@@ -95,7 +95,7 @@ def test_location_formats_for_multiple_in_list():
             "phone": "0118999",
 
         }, {
-            "address_id": 5,
+            "location_id": 5,
             "address_line_1": "1337 Computers",
             "address_line_2": "Microsoft Ave",
             "district": "Gates",

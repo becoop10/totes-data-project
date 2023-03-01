@@ -1,4 +1,4 @@
-from utils.utils import format_payments
+from src.utils.myutils import format_payments
 
 
 def test_format_payments_correctly_formats_single_payment_input():

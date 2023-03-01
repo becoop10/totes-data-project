@@ -1,4 +1,4 @@
-from utils.utils import format_purchase
+from src.utils.myutils import format_purchase
 
 
 def test_format_purchases_correctly_formats_list_containing_one_sale():

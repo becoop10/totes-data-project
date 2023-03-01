@@ -1,4 +1,4 @@
-from utils.utils import format_design
+from src.utils.myutils import format_design
 
 
 def test_format_design_formats_for_single_item_input():

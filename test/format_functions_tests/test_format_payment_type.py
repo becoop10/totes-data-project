@@ -1,4 +1,4 @@
-from utils.utils import format_payment_type
+from src.utils.myutils import format_payment_type
 
 
 def test_format_payment_type_formats_list_containing_one_payment_entity():

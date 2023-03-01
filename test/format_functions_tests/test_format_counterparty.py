@@ -1,4 +1,4 @@
-from utils.utils import format_counterparty
+from src.utils.myutils import format_counterparty
 import pytest
 from unittest.mock import patch
 import logging

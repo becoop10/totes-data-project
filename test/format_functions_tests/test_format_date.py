@@ -1,4 +1,4 @@
-from dim_date import format_date, write_to_db
+from src.utils.dim_date import format_date, write_to_db
 import pytest
 import datetime
 import logging
