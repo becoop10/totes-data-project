@@ -1,6 +1,6 @@
 from moto import mock_s3
 import boto3
-from function.myutils import (get_bucket_names, get_file_names,
+from utils.myutils import (get_bucket_names, get_file_names,
  get_file_contents, write_file_to_processed_bucket)
 import json
 import os
