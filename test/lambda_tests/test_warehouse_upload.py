@@ -1,4 +1,4 @@
-from src.warehouse_upload import (read_csv, read_parquet, write_to_db, query_builder, data_sorter)
+from src.load_data import (read_csv, read_parquets, write_to_db, query_builder, data_sorter)
 import pytest
 import pandas as pd
 from io import BytesIO
@@ -15,7 +15,8 @@ def test_read_parquet_reads_from_parquet_at_path():
     out_buffer = BytesIO()
     df.to_parquet(out_buffer, index=False)
     conn.put_object(Bucket=BUCKETNAME, Key='test_parquet', Body=out_buffer.getvalue())
-    result = read_parquet(conn, 'test_parquet', BUCKETNAME)
+    result = read_parquets(conn, 'test_parquet', BUCKETNAME)
+    result = result.to_dict('records')
 
     assert result == list
 
@@ -37,10 +38,10 @@ def test_read_csv_reads_from_csv_at_path():
 def test_query_builder_writes_query():
     r = { 'staff_id': 1, 'hello':2, 'world': 3}
     query, var_in = query_builder(r, 'dim_staff')
-    expected = "INSERT INTO dim_staff (%s) VALUES (%s) ON CONFLICT (staff_id) DO UPDATE SET staff_id = EXCLUDED.staff_id, hello = EXCLUDED.hello, world = EXCLUDED.world;"
+    expected = "INSERT INTO dim_staff (staff_id, hello, world) VALUES %s ON CONFLICT (staff_id) DO UPDATE SET staff_id = EXCLUDED.staff_id, hello = EXCLUDED.hello, world = EXCLUDED.world;"
     assert query == expected
 
-def test_data_sorter_sorts_list_of_dicts():
+def test_data_sorter_sorts_list_of_dicts_in_df():
     d = [
         {'staff_id':2},
         {'staff_id':3},
@@ -51,7 +52,8 @@ def test_data_sorter_sorts_list_of_dicts():
         {'staff_id':2},
         {'staff_id':3}
     ]
-    result = data_sorter(d, 'dim_staff')
+    df=pd.DataFrame(d)
+    result = data_sorter(df, 'dim_staff')
+    result = result.to_dict('records')
     assert result == e
 
-@mock_s3

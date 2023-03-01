@@ -132,7 +132,7 @@ id_columns = {
     'fact_payment' : 'payment_id'
 }
 
-def query_builder(r, filename, invocations):
+def query_builder(r, filename):
     '''Builds a SQL query for writing to the warehouse db'''
     keys = list(r.keys())
     values = [r[k] for k in keys]
@@ -142,9 +142,6 @@ def query_builder(r, filename, invocations):
     full_fact_update_string = ", ".join(fact_update_strings)
     key_string = ", ".join(keys)
 
-    # if invocations == 0:
-    #     var_in = (tuple(values), )
-    #     query = f'INSERT INTO {filename} ({key_string}) VALUES %s;'
 
 
     if 'dim' in filename:
@@ -262,7 +259,7 @@ def lambda_handler(event, context):
                                 sorted_data=sorted_data.replace(pd.np.nan, None)
                                 sorted_data = sorted_data.to_dict('records')
                                 for r in sorted_data:      
-                                    query, var_in = query_builder(r, filename, response)
+                                    query, var_in = query_builder(r, filename)
                                     cur.execute(query, var_in)
 
                             logger.info(f'{f} uploaded to warehouse.')

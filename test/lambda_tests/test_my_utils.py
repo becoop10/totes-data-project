@@ -1,6 +1,6 @@
 from moto import mock_s3
 import boto3
-from utils.myutils import (get_bucket_names, get_file_names,
+from src.utils.myutils import (get_bucket_names, get_file_names,
  get_file_contents, write_file_to_processed_bucket)
 import json
 import os
@@ -37,9 +37,9 @@ def test_get_bucket_names_returns_empty_list_when_there_are_no_buckets(s3):
 def test_get_file_names_correctly_retrieves_file_names_in_ingested_bucket(s3):
 
     s3.create_bucket(Bucket='totes-amazeballs-s3-ingested-0987')
-    s3.upload_file('./star_schema/src/app/test.txt',
+    s3.upload_file('./test/lambda_tests/test_data/test.txt',
                    'totes-amazeballs-s3-ingested-0987', '2022-11-03 14:20:49.962000/test.txt')
-    s3.upload_file('./star_schema/src/app/dummy.txt',
+    s3.upload_file('./test/lambda_tests/test_data/dummy.txt',
                    'totes-amazeballs-s3-ingested-0987', '2022-11-03 14:20:49.962000/dummy.txt')
     assert get_file_names(
         'totes-amazeballs-s3-ingested-0987', '2022-11-03 14:20:49.962000') == ['2022-11-03 14:20:49.962000/dummy.txt', '2022-11-03 14:20:49.962000/test.txt']
@@ -55,11 +55,11 @@ def test_get_file_names_returns_empty_list_when_no_files_are_in_directory(s3):
 def test_get_file_names_ignores_other_dates(s3):
 
     s3.create_bucket(Bucket='totes-amazeballs-s3-ingested-0987')
-    s3.upload_file('./star_schema/src/app/test.txt',
+    s3.upload_file('./test/lambda_tests/test_data/test.txt',
                    'totes-amazeballs-s3-ingested-0987', '2022-11-03 15:20:51.962000/test.txt')
-    s3.upload_file('./star_schema/src/app/dummy.txt',
+    s3.upload_file('./test/lambda_tests/test_data/dummy.txt',
                    'totes-amazeballs-s3-ingested-0987', '2022-11-03 15:20:51.962000/dummy.txt')
-    s3.upload_file('./star_schema/src/app/dummy.txt',
+    s3.upload_file('./test/lambda_tests/test_data/dummy.txt',
                    'totes-amazeballs-s3-ingested-0987', '2022-11-03 14:20:49.962000/bingo.txt')
     assert get_file_names(
         'totes-amazeballs-s3-ingested-0987', '2022-11-03 14:20:49.962000') == ['2022-11-03 14:20:49.962000/bingo.txt']
@@ -68,12 +68,12 @@ def test_get_file_names_ignores_other_dates(s3):
 def test_get_file_contents_returns_correct_file_content_as_json(s3):
 
     s3.create_bucket(Bucket='totes-amazeballs-s3-ingested-data-bucket-0987')
-    s3.upload_file('./star_schema/src/app/address.json',
+    s3.upload_file('./test/lambda_tests/test_data/address.json',
                    'totes-amazeballs-s3-ingested-data-bucket-0987', 'address.json')
 
     assert get_file_names(
         'totes-amazeballs-s3-ingested-data-bucket-0987', '') == ['address.json']
-    with open("./star_schema/src/app/address.json") as f:
+    with open("./test/lambda_tests/test_data/address.json") as f:
         assert get_file_contents(
             'totes-amazeballs-s3-ingested-data-bucket-0987', 'address.json') == json.loads(f.read())
 
