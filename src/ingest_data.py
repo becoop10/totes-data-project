@@ -5,7 +5,6 @@ import logging
 import psycopg2
 import os
 
-from psycopg2.errors import OperationalError
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger('TotesysQueryLogger')
@@ -139,9 +138,6 @@ def lambda_handler(event, context):
 
     try:
         conn = db_connect(client)
-    except OperationalError as err:
-        logger.error('Error connecting to db.')
-        raise
     except Exception as e:
         logger.error(e)
         raise
