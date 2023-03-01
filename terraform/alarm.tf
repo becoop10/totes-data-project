@@ -112,7 +112,9 @@ resource "aws_cloudwatch_log_metric_filter" "duration_error" {
   name           = "LongErrorCounter"
   pattern        = "Duration"
   log_group_name = "/aws/lambda/${var.load_lambda_name}"
-
+  depends_on = [
+      aws_cloudwatch_log_group.load_lambda_log_group
+    ]
   metric_transformation {
     name      = "EventCount"
     namespace = "LongLambdaErrorCounter"
