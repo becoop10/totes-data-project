@@ -38,8 +38,8 @@ jobs:
         run: sudo apt-get install -y make
       - name: get requirements
         run: make requirements
-      - name: make checks
-        run: make run-checks
+      - name: make tests
+        run: unit-test
 
   terraform:
     runs-on: ubuntu-latest
