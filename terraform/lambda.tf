@@ -27,4 +27,16 @@ resource "aws_lambda_function" "load_lambda" {
         "arn:aws:lambda:us-east-1:770693421928:layer:Klayers-p39-pandas:11"
         ]
     timeout = "900"
+
+    environment {
+        variables = {
+            Invocations = "0"
+        }
+    }   
+
+    lifecycle {
+        ignore_changes = [
+            environment.0.variables["Invocations"]
+        ]
+    }
 }
