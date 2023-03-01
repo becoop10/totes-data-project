@@ -25,7 +25,7 @@ if [ $input = 't' ] || [ $input = 'a' ]
 then
     rm src/transform_deployment.zip
     pip install pyarrow --target src/transform_package
-    cp src/utils/myutils.py src/transform_package/utils
+    cp src/utils/myutils.py src/transform_package/utils/myutils.py
     cd src/transform_package
     rm -r numpy numpy.libs numpy-1.24.2.dist-info
     zip -r ../transform_deployment.zip .

@@ -8,7 +8,7 @@ resource "aws_lambda_function" "ingest_lambda" {
 }
 
 resource "aws_lambda_function" "transform_lambda" {
-    filename = "../src/transform_deployment.zip"
+    filename = "../src/transform_deployment1.zip"
     function_name = "${var.transform_lambda_name}"
     role = aws_iam_role.transform_lambda_role.arn
     handler = "transform_data.lambda_handler"
