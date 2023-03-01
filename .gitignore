@@ -10,3 +10,6 @@ function/package/
 test_load.py
 *package*
 setup-db-credentials.sh
+node_modules
+setup-db-credentials.sh
+.terraform
