@@ -1,44 +1,82 @@
-# Set variables
-PYTHON = python3
-PIP = pip
-AWS_REGION = us-east-1
+#################################################################################
+#
+# Makefile to build the project
+#
+#################################################################################
 
-# Default target
-all: terraform-init terraform-plan terraform-apply
+PROJECT_NAME = de-s3-file-reader
+REGION = eu-west-2
+PYTHON_INTERPRETER = python
+WD=$(shell pwd)
+PYTHONPATH=${WD}
+SHELL := /bin/bash
+PROFILE = default
+PIP:=pip
 
-# Install dependencies
-install:
-	$(PIP) install -r requirements.txt
+## Create python interpreter environment.
+create-environment:
+	@echo ">>> About to create environment: $(PROJECT_NAME)..."
+	@echo ">>> check python3 version"
+	( \
+		$(PYTHON_INTERPRETER) --version; \
+	)
+	@echo ">>> Setting up VirtualEnv."
+	( \
+	    $(PIP) install -q virtualenv virtualenvwrapper; \
+	    virtualenv venv --python=$(PYTHON_INTERPRETER); \
+	)
 
-# Package the ingestion Lambda function code into a ZIP file
-ingest-package:
-	zip -r ingest.zip src/ingest_data.py
+# Define utility variable to help calling Python from the virtual environment
+ACTIVATE_ENV := source venv/bin/activate
 
-# Package the transformation Lambda function code into a ZIP file
-transform-package:
-	zip -r transform.zip src/transform_data.py
+# Execute python related functionalities from within the project's environment
+define execute_in_env
+	$(ACTIVATE_ENV) && $1
+endef
 
-# Package the load Lambda function code into a ZIP file
-load-package:
-	zip -r load.zip src/load_data.py
+## Build the environment requirements
+requirements: create-environment
+	$(call execute_in_env, $(PIP) install -r ./requirements.txt)
 
-# Clean up build artifacts
-clean:
-	rm -f ingest.zip
-	rm -f transform.zip
-	rm -f load.zip
+################################################################################################################
+# Set Up
+## Install bandit
+bandit:
+	$(call execute_in_env, $(PIP) install bandit)
 
-# Set variables
-TERRAFORM_DIR = terraform
+## Install safety
+safety:
+	$(call execute_in_env, $(PIP) install safety)
 
-# Initialize Terraform
-terraform-init:
-	cd $(TERRAFORM_DIR) && terraform init
+## Install flake8
+flake:
+	$(call execute_in_env, $(PIP) install flake8)
 
-# Generate and show Terraform execution plan
-terraform-plan:
-	cd $(TERRAFORM_DIR) && terraform plan
+## Install coverage
+coverage:
+	$(call execute_in_env, $(PIP) install coverage)
 
-# Apply Terraform changes
-terraform-apply:
-	cd $(TERRAFORM_DIR) && terraform apply
+## Set up dev requirements (bandit, safety, flake8)
+dev-setup: bandit safety flake coverage
+
+# Build / Run
+
+## Run the security test (bandit + safety)
+security-test:
+	$(call execute_in_env, safety check -r ./requirements.txt)
+	$(call execute_in_env, bandit -lll */*.py *c/*/*.py)
+
+## Run the flake8 code check
+run-flake:
+	$(call execute_in_env, flake8  ./src/*/*.py ./test/*/*.py)
+
+## Run the unit tests
+unit-test:
+	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} pytest -v)
+
+## Run the coverage check
+check-coverage:
+	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} coverage run --omit 'venv/*' -m pytest && coverage report -m)
+
+## Run all checks
+run-checks: security-test run-flake unit-test check-coverage

@@ -25,6 +25,22 @@ on:
         default: dev
         required: false
 jobs:
+  do-makefile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: get the repo
+        uses: actions/checkout@v3.3.0
+      - name: get python
+        uses: actions/setup-python@v4.5.0
+        with:
+          python-version: "3.9"
+      - name: install make
+        run: sudo apt-get install -y make
+      - name: get requirements
+        run: make requirements
+      - name: make checks
+        run: make run-checks
+
   terraform:
     runs-on: ubuntu-latest
     environment: test

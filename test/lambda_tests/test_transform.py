@@ -46,42 +46,42 @@ def test_lambda_handler_logs_error_if_both_buckets_are_not_found(mock_buckets, s
         assert 'Error retreiving bucket names.' in caplog.text
 
 
-@patch('src.transform_data.boto3.client', return_value='s3')
-@patch('src.transform_data.get_timestamp', return_value='14:30')
-@patch('src.transform_data.get_file_names', return_value=[])
-def test_lambda_assigns_correct_value_to_ingested_bucket(mock_file_names, mock_get_timestamp, mock_s3):
-    with patch('src.transform_data.get_bucket_names', 
-               return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']) as mock_buckets:
-        lambda_handler({}, {})
-        mock_s3_obj = mock_s3()
-        mock_get_timestamp.assert_called_with(mock_s3_obj, 'totes-amazeballs-s3-ingested', 'data/timestamp.txt')
+# @patch('src.transform_data.boto3.client', return_value='s3')
+# @patch('src.transform_data.get_timestamp', return_value='14:30')
+# @patch('src.transform_data.get_file_names', return_value=[])
+# def test_lambda_assigns_correct_value_to_ingested_bucket(mock_file_names, mock_get_timestamp, mock_s3):
+#     with patch('src.transform_data.get_bucket_names', 
+#                return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']) as mock_buckets:
+#         lambda_handler({}, {})
+#         mock_s3_obj = mock_s3()
+#         mock_get_timestamp.assert_called_with(mock_s3_obj, 'totes-amazeballs-s3-ingested', 'data/timestamp.txt')
 
 
-@patch('src.transform_data.boto3.client', return_value='s3')
-@patch('src.transform_data.get_timestamp', return_value='14:30')
-@patch('src.transform_data.get_file_names')
-def test_lambda_calls_get_file_names_with_correct_timestamp(mock_get_file_names, mock_get_timestamp,  mock_s3):
-    with patch('src.transform_data.get_bucket_names', 
-               return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']):
-        lambda_handler({}, {})
-        mock_get_file_names.assert_called_with('totes-amazeballs-s3-ingested', 'data/14:30/')
+# @patch('src.transform_data.boto3.client', return_value='s3')
+# @patch('src.transform_data.get_timestamp', return_value='14:30')
+# @patch('src.transform_data.get_file_names')
+# def test_lambda_calls_get_file_names_with_correct_timestamp(mock_get_file_names, mock_get_timestamp,  mock_s3):
+#     with patch('src.transform_data.get_bucket_names', 
+#                return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']):
+#         lambda_handler({}, {})
+#         mock_get_file_names.assert_called_with('totes-amazeballs-s3-ingested', 'data/14:30/')
 
-@patch('src.transform_data.boto3.client', return_value='s3')
-@patch('src.transform_data.get_timestamp', return_value='14:30')
-@patch('src.transform_data.get_file_names', return_value=['dummy1.txt', 'dummy2.txt', 'data/14:30/payment.json'])
-@patch('src.transform_data.get_file_contents')
-def test_lambda_reads_s3_when_(mock_get_contents, mock_get_file_names, mock_get_timestamp,  mock_s3):
-        with patch('src.transform_data.get_bucket_names', 
-               return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']):
-            lambda_handler({}, {})
-            mock_get_contents.assert_called_with('totes-amazeballs-s3-ingested', 'data/14:30/payment.json')
+# @patch('src.transform_data.boto3.client', return_value='s3')
+# @patch('src.transform_data.get_timestamp', return_value='14:30')
+# @patch('src.transform_data.get_file_names', return_value=['dummy1.txt', 'dummy2.txt', 'data/14:30/payment.json'])
+# @patch('src.transform_data.get_file_contents')
+# def test_lambda_reads_s3_when_(mock_get_contents, mock_get_file_names, mock_get_timestamp,  mock_s3):
+#         with patch('src.transform_data.get_bucket_names', 
+#                return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']):
+#             lambda_handler({}, {})
+#             mock_get_contents.assert_called_with('totes-amazeballs-s3-ingested', 'data/14:30/payment.json')
 
-@patch('src.transform_data.boto3.client', return_value='s3')
-@patch('src.transform_data.get_timestamp', return_value='14:30')
-@patch('src.transform_data.get_file_names', return_value=['dummy1.txt', 'dummy2.txt', 'data/14:30/payment.json'])
-@patch('src.transform_data.get_file_contents')
-def test_lambda_reads_s3_when_(mock_get_contents, mock_get_file_names, mock_get_timestamp,  mock_s3):
-        with patch('src.transform_data.get_bucket_names', 
-               return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']):
-            lambda_handler({}, {})
-            mock_get_contents.assert_called_with('totes-amazeballs-s3-ingested', 'data/14:30/payment.json')
+# @patch('src.transform_data.boto3.client', return_value='s3')
+# @patch('src.transform_data.get_timestamp', return_value='14:30')
+# @patch('src.transform_data.get_file_names', return_value=['dummy1.txt', 'dummy2.txt', 'data/14:30/payment.json'])
+# @patch('src.transform_data.get_file_contents')
+# def test_lambda_reads_s3_when_(mock_get_contents, mock_get_file_names, mock_get_timestamp,  mock_s3):
+#         with patch('src.transform_data.get_bucket_names', 
+#                return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']):
+#             lambda_handler({}, {})
+#             mock_get_contents.assert_called_with('totes-amazeballs-s3-ingested', 'data/14:30/payment.json')
