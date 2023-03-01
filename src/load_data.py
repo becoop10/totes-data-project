@@ -219,7 +219,7 @@ def lambda_handler(event, context):
     with conn.cursor() as cur:
         if response==0:
 
-            reverse_id_columns = list(id_columns.key())
+            reverse_id_columns = list(id_columns.keys())
             reverse_id_columns.reverse()
 
             for key in reverse_id_columns:
