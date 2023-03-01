@@ -187,8 +187,8 @@ def lambda_handler(event, context):
     except InvalidTimeStampError:
         raise
     except Exception:
-        logger.error('Unable to retrieve timestamp.')
-        raise
+        last_timestamp = "2022-02-20 09:00:35.185169"
+        
     
     last_timestamp_obj = datetime.datetime.strptime(
         last_timestamp, '%Y-%m-%d %H:%M:%S.%f')
