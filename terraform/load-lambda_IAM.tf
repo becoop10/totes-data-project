@@ -36,7 +36,7 @@ data "aws_iam_policy_document" "s3_load_document" {
         actions = ["lambda:InvokeFunction","lambda:InvokeFunctionConfiguration", "lambda:UpdateFunctionConfiguration"]
 
         resources = [
-            "arn:aws:s3:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:*"
+            "arn:aws:s3:::*"
         ]
     }
 }
