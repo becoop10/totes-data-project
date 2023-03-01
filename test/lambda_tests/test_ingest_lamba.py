@@ -53,7 +53,7 @@ def test_read_db_returns_data_from_totesys_database(mock_connect):
     expected = [('GBP',)]
     mock_connect.cursor.return_value.fetchall.return_value = expected
     query = 'SELECT currency_code FROM currency WHERE currency_id = 1;'
-    assert read_db(query, (), mock_connect) == expected
+    assert read_db(query, (), mock_connect.cursor()) == expected
 
 
 def test_get_timestamp_returns_timestamp_as_string(s3):

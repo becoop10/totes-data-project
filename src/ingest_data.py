@@ -91,13 +91,11 @@ def format_data(data, headers):
     except:
         pass
 
-def read_db(query, var_in, db_conn):
+def read_db(query, var_in, cur):
     '''Makes a query to the totesys db'''
-    cur = db_conn.cursor()
     try:
         cur.execute(query, var_in)
         result = cur.fetchall()
-        cur.close()
         return result
     except Exception as e:
         logger.error(f'An error occured querying {var_in} table.')
@@ -192,41 +190,42 @@ def lambda_handler(event, context):
     updated_tables = []
     count = 0
 
-    for table in tables:
-        try:
-            updated_rows = read_db(
-                f'SELECT * FROM {table} WHERE last_updated > %s;', (last_timestamp,), conn)
-            if len(updated_rows) != 0:
-                count += 1
-                updated_tables.append(table)
-                last_updated_data = read_db(
-                    f'SELECT last_updated FROM {table} WHERE last_updated > %s ORDER BY last_updated DESC LIMIT 1;', (last_timestamp,), conn)
-                most_recent = last_updated_data[0][0]
-                if most_recent > last_timestamp_obj:
-                    new_timestamp_obj = most_recent
-        except Exception:
-            raise
-    for table in updated_tables:
-        try:
-            file_path = f"{new_timestamp_obj}/{table}"
-            updated_rows = read_db(
-                f'SELECT * FROM {table} WHERE last_updated > %s;', (last_timestamp,), conn)
-            headers = read_db(
-                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (table,), conn)
-            data = format_data(updated_rows, headers)
-            write_to_s3(s3, file_path, data, ingested_bucket)
-            logger.info(f'{table} updated.')
-        except Exception:
-            raise
-    if count > 0:
-        try:
-            s3.put_object(Body=f'{new_timestamp_obj}',
-                        Bucket=ingested_bucket, Key="data/timestamp.txt")
-            logger.info('timestamp updated.')
-        except:
-            logger.info('Error writing timestamp')
-    else:
-        logger.info('Checked for updates: no updates found')
+    with conn.cursor() as cur:
+        for table in tables:
+            try:
+                updated_rows = read_db(
+                    f'SELECT * FROM {table} WHERE last_updated > %s;', (last_timestamp,), cur)
+                if len(updated_rows) != 0:
+                    count += 1
+                    updated_tables.append(table)
+                    last_updated_data = read_db(
+                        f'SELECT last_updated FROM {table} WHERE last_updated > %s ORDER BY last_updated DESC LIMIT 1;', (last_timestamp,), cur)
+                    most_recent = last_updated_data[0][0]
+                    if most_recent > last_timestamp_obj:
+                        new_timestamp_obj = most_recent
+            except Exception:
+                raise
+        for table in updated_tables:
+            try:
+                file_path = f"{new_timestamp_obj}/{table}"
+                updated_rows = read_db(
+                    f'SELECT * FROM {table} WHERE last_updated > %s;', (last_timestamp,), cur)
+                headers = read_db(
+                    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = %s;", (table,), cur)
+                data = format_data(updated_rows, headers)
+                write_to_s3(s3, file_path, data, ingested_bucket)
+                logger.info(f'{table} updated.')
+            except Exception:
+                raise
+        if count > 0:
+            try:
+                s3.put_object(Body=f'{new_timestamp_obj}',
+                            Bucket=ingested_bucket, Key="data/timestamp.txt")
+                logger.info('timestamp updated.')
+            except:
+                logger.info('Error writing timestamp')
+        else:
+            logger.info('Checked for updates: no updates found')
 
     conn.close()
 
