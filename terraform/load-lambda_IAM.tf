@@ -36,7 +36,7 @@ data "aws_iam_policy_document" "s3_load_document" {
         actions = ["lambda:GetFunctionConfiguration","lambda:GetFunction","lambda:InvokeFunction","lambda:InvokeFunctionConfiguration", "lambda:UpdateFunctionConfiguration"]
 
         resources = [
-            "arn:aws:lambda:::*"
+            "*"
         ]
     }
 }
