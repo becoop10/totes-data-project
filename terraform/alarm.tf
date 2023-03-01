@@ -26,7 +26,7 @@ resource "aws_cloudwatch_log_metric_filter" "any_error" {
     }
 }
 
-resource "aws_cloudwatch_metric_alarm" "alert_errors" {
+resource "aws_cloudwatch_metric_alarm" "ingest_alert_errors" {
     alarm_name = "error_alert"
     comparison_operator = "GreaterThanOrEqualToThreshold"
     evaluation_periods = "1"
@@ -59,7 +59,7 @@ resource "aws_cloudwatch_log_metric_filter" "any_transform_error" {
       value = "1"
     }
 }
-resource "aws_cloudwatch_metric_alarm" "alert_errors" {
+resource "aws_cloudwatch_metric_alarm" "transform_alert_errors" {
     alarm_name = "error_alert"
     comparison_operator = "GreaterThanOrEqualToThreshold"
     evaluation_periods = "1"
@@ -92,7 +92,7 @@ resource "aws_cloudwatch_log_metric_filter" "any_load_error" {
       value = "1"
     }
 }
-resource "aws_cloudwatch_metric_alarm" "alert_errors" {
+resource "aws_cloudwatch_metric_alarm" "load_alert_errors" {
     alarm_name = "error_alert"
     comparison_operator = "GreaterThanOrEqualToThreshold"
     evaluation_periods = "1"
