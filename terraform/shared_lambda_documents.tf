@@ -29,7 +29,7 @@ resource "aws_iam_role_policy_attachment" "list_buckets_transform_policy_attachm
 }
 
 resource "aws_iam_role_policy_attachment" "list_buckets_load_policy_attachment" {
-    role = aws_iam_role.transform_lambda_role.name
+    role = aws_iam_role.load_lambda_role.name
     policy_arn = aws_iam_policy.list_buckets_policy.arn
 }
 
