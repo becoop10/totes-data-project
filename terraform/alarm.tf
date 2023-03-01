@@ -1,3 +1,5 @@
+variable "EMAIL" {}
+
 resource "aws_sns_topic" "test_error_alerts" {
   name = "test-error-alerts"
   }
@@ -5,7 +7,7 @@ resource "aws_sns_topic" "test_error_alerts" {
   resource "aws_sns_topic_subscription" "email_subscription" {
   topic_arn = aws_sns_topic.test_error_alerts.arn
   protocol = "email"
-  endpoint = local.emails # email in stored in local.tf
+  endpoint = "${var.EMAIL}" # email in stored in local.tf
 }
 
 resource "aws_cloudwatch_log_group" "ingest_lambda_log_group" {

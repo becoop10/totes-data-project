@@ -13,6 +13,8 @@ env:
   TF_VAR_DATA_WAREHOUSE_USER: ${{ secrets.DATA_WAREHOUSE_USER }}
   TF_VAR_DATA_WAREHOUSE_PASSWORD: ${{ secrets.DATA_WAREHOUSE_PASSWORD }}
 
+  TF_VAR_EMAIL: ${{ secrets.EMAIL }}
+
 on:
   push:
     branches:
@@ -44,7 +46,7 @@ jobs:
   terraform:
     needs: do-makefile
     runs-on: ubuntu-latest
-    environment: test
+    environment: dev
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
