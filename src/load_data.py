@@ -201,19 +201,27 @@ def lambda_handler(event, context):
     bucket = get_bucket_names()[1]
     updated_files = read_csv(s3, csv_key, bucket)
 
-    lam=boto3.client('lambda')
+    # lam=boto3.client('lambda')
 
-    result=lam.get_function_configuration(
-    FunctionName='load-data'
-    )
+    # result=lam.get_function_configuration(
+    # FunctionName='load-data'
+    # )
+    # try:
+    #     response=result['Environment']['Variables']['Invocations']
+    #     logger.info(response)
+    # except Exception as e:
+    #     logger.info(result)
+    #     logger.info(e)
+    #     response=0
+    # response=int(response)
+
+
     try:
-        response=result['Environment']['Variables']['Invocations']
-        logger.info(response)
-    except Exception as e:
-        logger.info(result)
-        logger.info(e)
+        invokes=s3.get_object(Bucket=bucket,key="invocations.txt")
+        response = invokes['Body'].read().decode("utf-8").rstrip("\n")
+        response =int(response)
+    except:
         response=0
-    response=int(response)
 
     with conn.cursor() as cur:
         if response==0:
@@ -270,11 +278,15 @@ def lambda_handler(event, context):
         cur.close()    
     response+=1
 
-    lam.update_function_configuration(
-        FunctionName='load-data',
-        Environment={
-            'Variables':{
-                'Invocations':f'{response}'
-            }
-        }
-    )
+    s3.put_object(Body=f'response',Bucket=bucket,key="invocations.txt")
+
+
+
+    # lam.update_function_configuration(
+    #     FunctionName='load-data',
+    #     Environment={
+    #         'Variables':{
+    #             'Invocations':f'{response}'
+    #         }
+    #     }
+    # )
