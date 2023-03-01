@@ -18,7 +18,7 @@ resource "aws_lambda_function" "transform_lambda" {
 }
 
 resource "aws_lambda_function" "load_lambda" {
-    filename = "../src/load_deployment.zip" # Put filepath to load zip here
+    filename = "../src/load_deployment1.zip" # Put filepath to load zip here
     function_name = "${var.load_lambda_name}"
     role = aws_iam_role.load_lambda_role.arn
     handler = "load_data.lambda_handler" # Put lambda handler here
