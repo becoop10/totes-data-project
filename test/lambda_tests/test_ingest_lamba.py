@@ -1,5 +1,6 @@
 from src.ingest_data import db_connect, lambda_handler, get_secret, read_db, get_timestamp, get_bucket_names, format_data, write_to_s3
 from unittest.mock import MagicMock, patch, DEFAULT, Mock
+from psycopg2.errors import OperationalError
 import boto3
 import botocore
 from moto import mock_s3, mock_secretsmanager
@@ -81,16 +82,16 @@ def test_get_timestamp_raises_exception_if_timestamp_is_in_incorrect_format(s3, 
                        Bucket=bucket_name, Key='timestamp.txt')
         with pytest.raises(Exception):
             get_timestamp(s3, bucket_name, 'timestamp.txt')
-            assert ('Timestamp file contents unacceptable'
+        with caplog.at_level(logging.INFO):
+            assert ('Timestamp file contents unacceptable.'
                     in caplog.text)
-
 
 def test_get_bucket_name_assigns_correct_bucket_names_to_variables(s3):
 
     s3.create_bucket(Bucket='totes-amazeballs-s3-ingested-data-bucket-0987')
     s3.create_bucket(Bucket='totes-amazeballs-s3-processed-data-bucket-0987')
 
-    assert get_bucket_names() == ['totes-amazeballs-s3-ingested-data-bucket-0987',
+    assert get_bucket_names(s3) == ['totes-amazeballs-s3-ingested-data-bucket-0987',
                                   'totes-amazeballs-s3-processed-data-bucket-0987']
 
 
@@ -131,7 +132,7 @@ def test_write_to_s3_logs_error_if_unable_to_write(s3, json_data, caplog):
     with caplog.at_level(logging.INFO):
         write_to_s3(s3, 'address', json_data,
                     'totes-amazeballs-bucket-which-doesnt-exist')
-        assert ('An error occured writing address'
+        assert ('Bucket totes-amazeballs-bucket-which-doesnt-exist not found'
                 in caplog.text)
 
 
@@ -185,58 +186,31 @@ def test_db_connect_creates_db_connection_with_secret_credentials(mock_connect, 
                                     port=5432)
 
 
-# test_db_responses = [(1576, 'SALE', 1005, None, datetime.datetime(2023, 2, 24, 9, 12, 10, 318000), datetime.datetime(2023, 2, 24, 9, 12, 10, 318000))]
-
-# @patch('src.app.ingest_data.read_db', return_value=[])
-# def test_lamba_
-
-
-# @patch('src.app.ingest_data.get_secret', return_value=secret_creds)
-# @patch('src.app.ingest_data.get_timestamp', return_value=Exception)
-# @patch("psycopg2.connect", )
-# def test_lambda_handler_logs_serious_error_when_timestamp_can_be_recovered(mock_connect,mock_get_timestamp,mock_get_secret):
-
-#     with pytest.raises(Exception):
-#         lambda_handler({},{})
-
-#     assert lambda_handler({},{}) == 'hello'
+@patch('src.ingest_data.db_connect', side_effect=OperationalError)
+def test_lambda_handler_raises_error_connecting_to_db(mock_connect, s3, caplog):
+    with pytest.raises(OperationalError):
+        lambda_handler({}, {})
 
 
-# def test_lambda_handler_uploads_objects_to_s3(s3):
-#     bucket_name = 'totes-amazeballs-s3-ingested-data-bucket'
-#     s3.create_bucket(Bucket=bucket_name)
-#     with patch('boto3.client', return_value=s3):
-#         lambda_handler({}, {})
-#         objects = s3.list_objects(Bucket=bucket_name)
-#         keys = [c['Key'] for c in objects['Contents']]
-#         tables = [
-#             'counterparty',
-#             'currency',
-#             'department',
-#             'design',
-#             'staff',
-#             'sales_order',
-#             'address',
-#             'payment',
-#             'purchase_order',
-#             'payment_type',
-#             'transaction'
-#         ]
-#         for t in tables:
-#             assert f'data/{t}.json' in keys
+@patch('src.ingest_data.db_connect', return_value='test connection')
+@patch('src.ingest_data.get_bucket_names', return_value=[])
+def test_lambda_handler_logs_if_no_buckets_are_found(mock_get_buckets, mock_connect, s3, caplog):
+    with caplog.at_level(logging.INFO):
+        lambda_handler({}, {})
+        assert 'No buckets found.' in caplog.text
 
+@patch('src.ingest_data.db_connect', return_value='test connection')
+@patch('src.ingest_data.get_bucket_names', return_value=['processed-bucket'])
+def test_lambda_handler_logs_if_ingested_bucket_doesnt_exist(mock_get_buckets, mock_connect, s3, caplog):
+    with pytest.raises(KeyError):
+        lambda_handler({}, {})
 
-# @freeze_time('2023-02-01')
-# def test_lambda_handler_updates_timestamp(s3):
-#     bucket = 'totes-amazeballs-s3-ingested-data-bucket-12345'
-#     s3.create_bucket(
-#         Bucket=bucket,
-#         CreateBucketConfiguration={'LocationConstraint': 'eu-east-2'}
-#         )
-#     with patch('boto3.client', return_value=s3):
-#         lambda_handler({},{})
-#         ts = retrieve_timestamp()
-#         assert ts == datetime.datetime(2023,2,1).isoformat()
-
-# def test_get_secret_finds_database_credentials():
-#     pass
+@patch('src.ingest_data.db_connect')
+@patch('src.ingest_data.get_bucket_names', return_value=['processed-bucket', 'ingested_bucket'])
+@patch('src.ingest_data.read_db', return_value=[])
+def test_lambda_handler_queries_db_for_every_table(mock_read_db, mock_get_buckets, mock_connect, s3):
+    with patch('src.ingest_data.get_timestamp', return_value='2023-02-20 09:00:35.185169') as mock_timestamp:
+        mock_conn = mock_connect.return_value
+        mock_conn.close.return_value = ''
+        lambda_handler({}, {})
+        assert mock_read_db.call_count == 11

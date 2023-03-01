@@ -4,27 +4,48 @@ import json
 import pandas as pd 
 from io import BytesIO
 import math
+from botocore.exceptions import ClientError
+
 logger = logging.getLogger('DBTransformationLogger')
 logger.setLevel(logging.INFO)
 
 '''Utility and helper functions which are called by the transform data lambda'''
 
 
+def get_timestamp(s3, bucket_name, timestamp_key):
+    '''retreives timestamp from bucket - if not in correct format or unable to retrieve raises exception'''
+    try:
+        response = s3.get_object(Bucket=bucket_name, Key=timestamp_key)
+        timestamp = response['Body'].read().decode("utf-8").rstrip("\n")
+        for char in timestamp:
+            if char.isalpha() == True or char == ';':
+                logger.error('Timestamp file contents unacceptable')
+                raise Exception()
+        return timestamp
+    except ClientError as c:
+        if c.response['Error']['Code'] == 'NoSuchKey':
+            logger.error(f'No file {timestamp_key}')
+        elif c.response['Error']['Code'] == 'NoSuchBucket':
+            logger.error(f'No bucket {bucket_name}')
+    except Exception:
+        logger.error('Unable to retrieve timestamp.')
+        raise RuntimeError
+    
 
-
-
-def get_bucket_names():
-    '''Obtains the full names of the processed and ingested buckets in s3 regardless of the randomised suffix'''
-    s3 = boto3.resource('s3')
-    for bucket in s3.buckets.all():
-        if "ingested" in bucket.name:
-            ingested_bucket = bucket.name
-        if "processed" in bucket.name:
-            processed_bucket = bucket.name
-    return [ingested_bucket, processed_bucket]
-
-
-def get_file_names(bucket_name,prefix):
+def get_bucket_names(client):
+    '''Returns list of bucket names in s3'''
+    try:
+        response = client.list_buckets()
+        return [bucket['Name'] for bucket in response['Buckets']]
+    except ClientError as c:
+        logger.error(c)
+        raise c
+    except Exception as e:
+        logger.error(e)
+        raise RuntimeError
+    
+    
+def get_file_names(bucket_name, prefix):
     '''Obtains the names of all the files stored in the relevant s3 bucket'''
     s3 = boto3.client('s3')
     response = s3.list_objects(Bucket=bucket_name,Prefix=prefix)

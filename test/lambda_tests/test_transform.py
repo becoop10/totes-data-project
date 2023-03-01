@@ -1,11 +1,19 @@
 from moto import mock_s3
 import boto3
-from star_schema.src.app.app import lambda_handler, get_bucket_names, get_file_names, get_file_contents, write_file_to_processed_bucket
+from botocore.exceptions import ClientError
+from unittest.mock import patch
+from src.transform_data import (lambda_handler, get_bucket_names, get_file_names,
+ get_file_contents, write_file_to_processed_bucket)
 import json
 import os
 import pytest
 import pandas as pd
 from io import BytesIO
+import logging
+
+logger = logging.getLogger('test')
+logger.setLevel(logging.INFO)
+logger.propagate = True
 
 
 @pytest.fixture(scope='function')
@@ -24,78 +32,56 @@ def s3(aws_credentials):
         yield boto3.client("s3", region_name="us-east-1")
 
 
-def test_get_bucket_name_assigns_correct_bucket_names_to_variables(s3):
+@patch('src.transform_data.get_bucket_names', return_value=[])
+def test_lambda_handler_logs_if_no_buckets_are_found(s3, caplog):
+    with caplog.at_level(logging.INFO):
+        lambda_handler({}, {})
+        assert 'No buckets found.' in caplog.text
 
-    s3.create_bucket(Bucket='totes-amazeballs-s3-ingested-data-bucket-0987')
-    s3.create_bucket(Bucket='totes-amazeballs-s3-processed-data-bucket-0987')
-
-    assert get_bucket_names() == ['totes-amazeballs-s3-ingested-data-bucket-0987',
-                                  'totes-amazeballs-s3-processed-data-bucket-0987']
-
-
-def test_get_file_names_correctly_retrieves_file_names_in_ingested_bucket(s3):
-
-    s3.create_bucket(Bucket='totes-amazeballs-s3-ingested-0987')
-    s3.upload_file('./star_schema/src/app/test.txt',
-                   'totes-amazeballs-s3-ingested-0987', '2022-11-03 14:20:49.962000/test.txt')
-    s3.upload_file('./star_schema/src/app/dummy.txt',
-                   'totes-amazeballs-s3-ingested-0987', '2022-11-03 14:20:49.962000/dummy.txt')
-    assert get_file_names(
-        'totes-amazeballs-s3-ingested-0987', '2022-11-03 14:20:49.962000') == ['dummy.txt', 'test.txt']
+@patch('src.transform_data.get_bucket_names', return_value=['totes-amazeballs-s3-ingested', 'other-s3-bucket'])
+def test_lambda_handler_logs_error_if_both_buckets_are_not_found(mock_buckets, s3, caplog):
+    print(mock_buckets())
+    with caplog.at_level(logging.INFO):
+        lambda_handler({}, {})
+        assert 'Error retreiving bucket names.' in caplog.text
 
 
-def test_get_file_names_returns_empty_list_when_no_files_are_in_directory(s3):
-
-    s3.create_bucket(Bucket='totes-amazeballs-s3-ingested-0987')
-    assert get_file_names('totes-amazeballs-s3-ingested-0987',
-                          '2022-11-03 14:20:49.962000') == []
-
-
-def test_get_file_names_ignores_other_dates(s3):
-
-    s3.create_bucket(Bucket='totes-amazeballs-s3-ingested-0987')
-    s3.upload_file('./star_schema/src/app/test.txt',
-                   'totes-amazeballs-s3-ingested-0987', '2022-11-03 15:20:51.962000/test.txt')
-    s3.upload_file('./star_schema/src/app/dummy.txt',
-                   'totes-amazeballs-s3-ingested-0987', '2022-11-03 15:20:51.962000/dummy.txt')
-    s3.upload_file('./star_schema/src/app/dummy.txt',
-                   'totes-amazeballs-s3-ingested-0987', '2022-11-03 14:20:49.962000/bingo.txt')
-    assert get_file_names(
-        'totes-amazeballs-s3-ingested-0987', '2022-11-03 14:20:49.962000') == ['bingo.txt']
+@patch('src.transform_data.boto3.client', return_value='s3')
+@patch('src.transform_data.get_timestamp', return_value='14:30')
+@patch('src.transform_data.get_file_names', return_value=[])
+def test_lambda_assigns_correct_value_to_ingested_bucket(mock_file_names, mock_get_timestamp, mock_s3):
+    with patch('src.transform_data.get_bucket_names', 
+               return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']) as mock_buckets:
+        lambda_handler({}, {})
+        mock_s3_obj = mock_s3()
+        mock_get_timestamp.assert_called_with(mock_s3_obj, 'totes-amazeballs-s3-ingested', 'data/timestamp.txt')
 
 
-def test_get_file_contents_returns_correct_file_content_as_json(s3):
+@patch('src.transform_data.boto3.client', return_value='s3')
+@patch('src.transform_data.get_timestamp', return_value='14:30')
+@patch('src.transform_data.get_file_names')
+def test_lambda_calls_get_file_names_with_correct_timestamp(mock_get_file_names, mock_get_timestamp,  mock_s3):
+    with patch('src.transform_data.get_bucket_names', 
+               return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']):
+        lambda_handler({}, {})
+        mock_get_file_names.assert_called_with('totes-amazeballs-s3-ingested', 'data/14:30/')
 
-    s3.create_bucket(Bucket='totes-amazeballs-s3-ingested-data-bucket-0987')
-    s3.upload_file('./star_schema/src/app/address.json',
-                   'totes-amazeballs-s3-ingested-data-bucket-0987', 'address.json')
+@patch('src.transform_data.boto3.client', return_value='s3')
+@patch('src.transform_data.get_timestamp', return_value='14:30')
+@patch('src.transform_data.get_file_names', return_value=['dummy1.txt', 'dummy2.txt', 'data/14:30/payment.json'])
+@patch('src.transform_data.get_file_contents')
+def test_lambda_reads_s3_when_(mock_get_contents, mock_get_file_names, mock_get_timestamp,  mock_s3):
+        with patch('src.transform_data.get_bucket_names', 
+               return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']):
+            lambda_handler({}, {})
+            mock_get_contents.assert_called_with('totes-amazeballs-s3-ingested', 'data/14:30/payment.json')
 
-    assert get_file_names(
-        'totes-amazeballs-s3-ingested-data-bucket-0987') == ['address.json']
-    with open("./star_schema/src/app/address.json") as f:
-        assert get_file_contents(
-            'totes-amazeballs-s3-ingested-data-bucket-0987', 'address.json') == json.loads(f.read())
-
-
-def test_write_file_writes_data_to_processed_bucket(s3):
-
-    test_bucket_name = 'totes-amazeballs-s3-processed-data-bucket-0987'
-    s3.create_bucket(Bucket=test_bucket_name)
-
-    list = [{"hello": 1, "goodbye": 2}, {"hello": 3, "goodbye": 4}]
-
-    df = pd.DataFrame(list)
-
-    write_file_to_processed_bucket(test_bucket_name, 'testoutput', df)
-    response = s3.list_objects(Bucket=test_bucket_name)
-
-    response2 = s3.get_object(Bucket=test_bucket_name, Key='testoutput')
-
-    file = pd.read_parquet(BytesIO(response2['Body'].read()))
-
-    assert response['Contents'][0]['Key'] == 'testoutput'
-    assert file.to_dict('records') == list
-
-
-# def test_lambda_handler_logs_after_write_to_bucket():
-#     pass
+@patch('src.transform_data.boto3.client', return_value='s3')
+@patch('src.transform_data.get_timestamp', return_value='14:30')
+@patch('src.transform_data.get_file_names', return_value=['dummy1.txt', 'dummy2.txt', 'data/14:30/payment.json'])
+@patch('src.transform_data.get_file_contents')
+def test_lambda_reads_s3_when_(mock_get_contents, mock_get_file_names, mock_get_timestamp,  mock_s3):
+        with patch('src.transform_data.get_bucket_names', 
+               return_value=['totes-amazeballs-s3-ingested', 'processed-s3-bucket']):
+            lambda_handler({}, {})
+            mock_get_contents.assert_called_with('totes-amazeballs-s3-ingested', 'data/14:30/payment.json')
