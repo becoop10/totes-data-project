@@ -219,7 +219,10 @@ def lambda_handler(event, context):
     with conn.cursor() as cur:
         if response==0:
 
-            for key in list(id_columns.keys()).reverse():
+            reverse_id_columns = list(id_columns.key())
+            reverse_id_columns.reverse()
+
+            for key in reverse_id_columns:
                 cur.execute(f"DELETE FROM {key};")
 
         for key in list(id_columns.keys()):
